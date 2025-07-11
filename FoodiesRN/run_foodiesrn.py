@@ -139,21 +139,6 @@ def generate_blurb(business, user_input):
     return response.text.strip()
 
 
-engine = db.create_engine('sqlite:///recommendations.db')
-inspector = inspect(engine)
-
-def create_user_table():
-    with engine.connect() as connection:
-        connection.execute(db.text("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-        """))
-        connection.commit()
-
-
 def clear_rec_table():
     with engine.connect() as connection:
         connection.execute(db.text("DELETE FROM recommendations"))
@@ -199,85 +184,7 @@ def clear_saved_recommendations(user_id):
     print("\nAll your saved recommendations have been cleared.")
 
 
-def add_user():
-    while True:
-        username = input("Choose a username: ").strip()
-        password = input("Choose a password: ").strip()
-
-        with engine.connect() as connection:
-            result = connection.execute(
-                db.text("SELECT * FROM users WHERE username = :u"),
-                {"u": username}
-            ).fetchone()
-
-            if result:
-                print("Username already exists. Try a different one.\n")
-            else:
-                connection.execute(db.text(
-                    "INSERT INTO users (username, password) VALUES (:u, :p)"
-                ), {"u": username, "p": password})
-                connection.commit()
-                print("Account created successfully!\n")
-                return username
-
-
-def verify_user():
-    while True:
-        username = input("Username: ").strip()
-
-        with engine.connect() as connection:
-            user_exists = connection.execute(
-                db.text("SELECT * FROM users WHERE username = :u"),
-                {"u": username}
-            ).fetchone()
-
-        if not user_exists:
-            choice = get_valid_input(
-                "Username not found. Do you want to try again or sign up? (login/signup): ",
-                ["Login", "Signup"]
-            )
-            if choice.lower() == "signup":
-                return add_user()
-            else:
-                continue
-
-        while True:
-            password = input("Password: ").strip()
-
-            with engine.connect() as connection:
-                correct_credentials = connection.execute(
-                    db.text("SELECT * FROM users WHERE username = :u AND password = :p"),
-                    {"u": username, "p": password}
-                ).fetchone()
-
-            if correct_credentials:
-                print("Login successful!\n")
-                return username
-            else:
-                print("Incorrect password. Try again.\n")
-
-
-def get_user_id(username):
-    with engine.connect() as connection:
-        result = connection.execute(
-            db.text("SELECT id FROM users WHERE username = :u"),
-            {"u": username}
-        ).fetchone()
-        return result[0] if result else None
-
-
-def run_foodiesrn():
-    create_user_table()
-
-    print("\nWelcome to FoodiesRN!\n")
-    action = get_valid_input("Do you want to log in or sign up? (login/signup): ", ["Login", "Signup"])
-
-    if action.lower() == "signup":
-        username = add_user()
-    else:
-        username = verify_user()
-
-    user_id = get_user_id(username)
+def run_foodiesrn(user_id):
     session_recs = []
 
     while True:
@@ -291,6 +198,7 @@ def run_foodiesrn():
 
         elif menu_choice.lower() == "search":
             user_input = get_user_input()
+            print("\n🔍 Generating your personalized recommendations...\n")
             results = search_yelp(user_input)
 
             if results:
