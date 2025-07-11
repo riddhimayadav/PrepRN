@@ -221,66 +221,86 @@ def clear_saved_recommendations(user_id):
     print("\nAll your saved recommendations have been cleared.")
 
 
-def run_foodiesrn(user_id):
+def run_restaurant_search(user_id, session_recs):
+    user_input = get_user_input()
+    print("\n🔍 Generating your personalized recommendations...\n")
+    results = search_yelp(user_input)
+
+    if results:
+        filtered_results = [r for r in results if r["rating"] > 3.5]
+        num_recs = min(3, len(filtered_results))
+        top_recs = random.sample(filtered_results, k=num_recs)
+
+        blurbs = generate_blurbs(top_recs, user_input)
+
+        for biz, blurb in zip(top_recs, blurbs):
+            print(f"\n{biz['name']} – {biz['location']}")
+            print(f"Rating: {biz['rating']} | Price: {biz['price']}")
+            print()
+            print(blurb)
+            print()
+            print(f"Yelp URL: {biz['url']}")
+            print("-" * 40)
+
+            session_recs.append({
+                "name": biz["name"],
+                "location": biz["location"],
+                "price": biz["price"],
+                "rating": biz["rating"],
+                "url": biz["url"],
+                "user_location": user_input["location"],
+                "cuisine": user_input["cuisine"],
+                "vibe": user_input["vibe"],
+                "user_id": user_id
+            })
+
+        if session_recs:
+            save_to_db(session_recs, user_id)
+            session_recs.clear()
+
+    else:
+        print("No matches found. Try adjusting your preferences.")
+
+
+
+def run_food_module(user_id):
     session_recs = []
 
     while True:
         menu_choice = get_valid_input(
             "\nWhat would you like to do? (view/search/clear/exit): ",
             ["View", "Search", "Clear", "Exit"]
-        )
+        ).lower()
 
-        if menu_choice.lower() == "view":
-            view_saved_recommendations(user_id)
+        if menu_choice == "exit":
+            print("\nThanks for using PrepRN! Goodbye 👋")
+            break
 
-        elif menu_choice.lower() == "search":
-            user_input = get_user_input()
-            print("\n🔍 Generating your personalized recommendations...\n")
-            results = search_yelp(user_input)
+        sub_choice = get_valid_input(
+            "Which category? (restaurant/prep): ",
+            ["Restaurant", "Prep"]
+        ).lower()
 
-            if results:
-                filtered_results = [r for r in results if r["rating"] > 3.5]
-                num_recs = min(3, len(filtered_results))
-                top_recs = random.sample(filtered_results, k=num_recs)
+        if sub_choice == "restaurant":
+            if menu_choice == "view":
+                view_saved_recommendations(user_id)
 
-                blurbs = generate_blurbs(top_recs, user_input)
+            elif menu_choice == "search":
+                run_restaurant_search(user_id, session_recs)
 
-                for biz, blurb in zip(top_recs, blurbs):
-                    print(f"\n{biz['name']} – {biz['location']}")
-                    print(f"Rating: {biz['rating']} | Price: {biz['price']}")
-                    print()
-                    print(blurb)
-                    print()
-                    print(f"Yelp URL: {biz['url']}")
-                    print("-" * 40)
-
-                    session_recs.append({
-                        "name": biz["name"],
-                        "location": biz["location"],
-                        "price": biz["price"],
-                        "rating": biz["rating"],
-                        "url": biz["url"],
-                        "user_location": user_input["location"],
-                        "cuisine": user_input["cuisine"],
-                        "vibe": user_input["vibe"],
-                        "user_id": user_id
-                    })
-
-                if session_recs:
-                    save_to_db(session_recs, user_id)
-                    session_recs.clear()
+            elif menu_choice == "clear":
+                confirm = get_valid_input(
+                    "Are you sure you want to delete all restaurant recommendations? (yes/no): ",
+                    ["Yes", "No"]
+                ).lower()
+                if confirm == "yes":
+                    clear_saved_recommendations(user_id)
 
             else:
-                print("No matches found. Try adjusting your preferences.")
+                print("Invalid option.\n")
 
-        elif menu_choice.lower() == "clear":
-            confirm = get_valid_input(
-                "Are you sure you want to delete all saved recommendations? (yes/no): ",
-                ["Yes", "No"]
-            )
-            if confirm.lower() == "yes":
-                clear_saved_recommendations(user_id)
+        elif sub_choice == "prep":
+            print("🚧 PrepNGo feature is under construction 🛠️\n")
 
         else:
-            print("\nThanks for using FoodiesRN! Goodbye 👋")
-            break
+            print("Invalid category. Please choose 'restaurant' or 'prep'.\n")
