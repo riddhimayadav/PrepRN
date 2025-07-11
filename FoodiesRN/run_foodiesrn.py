@@ -166,9 +166,26 @@ def clear_rec_table():
 
 
 def save_to_db(results, user_id):
-    df = pd.DataFrame(results)
-    df["user_id"] = user_id
-    df.to_sql("recommendations", con=engine, if_exists="append", index=False)
+    with engine.connect() as connection:
+        for r in results:
+            exists = connection.execute(
+                db.text("""
+                    SELECT 1 FROM recommendations 
+                    WHERE user_id = :uid AND name = :name
+                """),
+                {"uid": user_id, "name": r["name"]}
+            ).fetchone()
+
+            if not exists:
+                connection.execute(
+                    db.text("""
+                        INSERT INTO recommendations 
+                        (name, location, price, rating, url, user_location, cuisine, vibe, user_id)
+                        VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id)
+                    """),
+                    r
+                )
+        connection.commit()
 
 
 def view_saved_recommendations(user_id):
