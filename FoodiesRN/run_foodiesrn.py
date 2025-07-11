@@ -9,6 +9,8 @@ from sqlalchemy import inspect
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
 
+engine = db.create_engine("sqlite:///recommendations.db")
+
 
 # reprompts if not valid input
 def get_valid_input(prompt, valid_options):
@@ -110,33 +112,51 @@ genai.configure(api_key=GENAI_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 
-def generate_blurb(business, user_input):
+def generate_blurbs(businesses, user_input):
     prompt = (
-        "Write a fun, personality-filled blurb using Gen Z Lingo "
-        "for this restaurant:\n\n"
-        "Only return the blurb – do not explain anything or "
-        "include headings or bullet points.\n\n"
-        f"Name: {business['name']}\n"
-        f"Cuisine: {user_input['cuisine']}\n"
-        f"Price: {user_input['price']}\n"
-        f"Location: {user_input['location']}\n"
-        f"Vibe: {user_input['vibe']}\n\n"
-        f"Explain why it fits someone looking for a "
-        f"{user_input['vibe']} experience."
+        "Write a short, fun, Gen Z-style blurb for each of the following restaurants. "
+        "Keep each blurb to 2–3 sentences max. Make each blurb exciting and positive. "
+        "Separate each restaurant clearly using numbered format (1., 2., 3.).\n\n"
         "Also, based on your knowledge, what do people typically say about "
-        f"{business['name']} in {user_input['location']}?"
+        f"the particular restuarant in {user_input['location']}?"
         "Only include positive traits, and explicitly write 'people are saying' add in what pros."
+        "Add this one extra sentence to each blurb, don't create separate section."
     )
+
+    for i, biz in enumerate(businesses, 1):
+        prompt += (
+            f"{i}.\n"
+            f"Name: {biz['name']}\n"
+            f"Cuisine: {user_input['cuisine']}\n"
+            f"Price: {biz['price']}\n"
+            f"Location: {biz['location']}\n"
+            f"Vibe: {user_input['vibe']}\n\n"
+        )
 
     response = model.generate_content(prompt)
 
     if response is None or not hasattr(response, "text") or not response.text.strip():
-        return (
-            f"{business['name']} fits the {user_input['vibe']} vibe and is popular for a reason. "
-            "People are saying it’s a go-to spot with great energy and good eats!"
-        )
+        return ["No blurb available."] * len(businesses)
 
-    return response.text.strip()
+    raw_blurbs = response.text.strip().split("\n")
+    blurbs = []
+    current = ""
+
+    for line in raw_blurbs:
+        if line.strip().startswith(tuple(str(i) + "." for i in range(1, len(businesses) + 1))):
+            if current:
+                blurbs.append(current.strip())
+            current = line
+        else:
+            current += "\n" + line
+
+    if current:
+        blurbs.append(current.strip())
+
+    while len(blurbs) < len(businesses):
+        blurbs.append("No blurb available.")
+
+    return blurbs
 
 
 def clear_rec_table():
@@ -206,9 +226,9 @@ def run_foodiesrn(user_id):
                 num_recs = min(3, len(filtered_results))
                 top_recs = random.sample(filtered_results, k=num_recs)
 
-                for biz in top_recs:
-                    blurb = generate_blurb(biz, user_input)
+                blurbs = generate_blurbs(top_recs, user_input)
 
+                for biz, blurb in zip(top_recs, blurbs):
                     print(f"\n{biz['name']} – {biz['location']}")
                     print(f"Rating: {biz['rating']} | Price: {biz['price']}")
                     print()
