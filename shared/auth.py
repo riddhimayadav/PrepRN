@@ -17,60 +17,39 @@ def create_user_table():
         """))
         connection.commit()
 
-def signup():
-    while True:
-        username = input("Choose a username: ").strip()
-        password = input("Choose a password: ").strip()
+def signup(username, password):
+    if not username.strip() or not password.strip():
+        return None
 
-        with engine.connect() as connection:
-            result = connection.execute(
-                db.text("SELECT * FROM users WHERE username = :u"),
-                {"u": username}
-            ).fetchone()
+    with engine.connect() as connection:
+        existing = connection.execute(
+            db.text("SELECT * FROM users WHERE username = :u"),
+            {"u": username}
+        ).fetchone()
 
-            if result:
-                print("❌ Username already exists. Try again.\n")
-            else:
-                connection.execute(
-                    db.text("INSERT INTO users (username, password) VALUES (:u, :p)"),
-                    {"u": username, "p": password}
-                )
-                connection.commit()
-                print("✅ Account created successfully!\n")
-                return username
+        if existing:
+            return None
+        else:
+            connection.execute(
+                db.text("INSERT INTO users (username, password) VALUES (:u, :p)"),
+                {"u": username, "p": password}
+            )
+            connection.commit()
+            return username
 
-def login():
-    while True:
-        username = input("Username: ").strip()
-        with engine.connect() as connection:
-            user = connection.execute(
-                db.text("SELECT * FROM users WHERE username = :u"),
-                {"u": username}
-            ).fetchone()
 
-        if not user:
-            print("❌ Username not found.")
-            choice = input("Do you want to try again or sign up? (login/signup): ").strip().lower()
-            if choice == "signup":
-                return signup()
-            else:
-                continue
+def login(username, password):
+    with engine.connect() as connection:
+        result = connection.execute(
+            db.text("SELECT * FROM users WHERE username = :u AND password = :p"),
+            {"u": username, "p": password}
+        ).fetchone()
 
-        for _ in range(3):
-            password = input("Password: ").strip()
-            with engine.connect() as connection:
-                result = connection.execute(
-                    db.text("SELECT * FROM users WHERE username = :u AND password = :p"),
-                    {"u": username, "p": password}
-                ).fetchone()
+    if result:
+        return username
+    else:
+        return None
 
-            if result:
-                print("✅ Login successful!\n")
-                return username
-            else:
-                print("Incorrect password. Try again.\n")
-
-        print("❌ Too many failed attempts. Restarting...\n")
 
 def login_or_signup():
     while True:
