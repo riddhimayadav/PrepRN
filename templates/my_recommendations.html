@@ -30,6 +30,19 @@
       <button type="submit">Clear All</button>
     </form>
   </div>
-  <p>This feature is under construction.</p>
+  {% if prepngo_results %}
+    <ul>
+        {% for m in prepngo_results %}
+        <li>
+        <strong>{{ m[0] }}</strong> – ${{ "%.2f"|format(m[1]) }}<br>
+        {{ m[2] }}<br>
+        <a href="{{ m[3] }}" target="_blank">View Recipe</a>
+        </li>
+        {% endfor %}
+    </ul>
+  {% else %}
+    <p>No PrepNGo meals saved yet.</p>
+  {% endif %}
+
 
 {% endblock %}

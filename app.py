@@ -3,6 +3,9 @@ from shared.auth import create_user_table, get_user_id
 from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
+from shared.prepngo_helpers import get_prepngo_meals
+from prepngo.PrepnGo import main as run_prepngo
+from prepngo.database_functions import *
 
 
 app = Flask(__name__)
@@ -13,8 +16,6 @@ create_user_table()
 
 @app.route("/")
 @app.route("/home")
-def index():
-    return render_template("index.html")
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup_view():
@@ -65,7 +66,7 @@ def my_recommendations():
     
     user_id = session["user_id"]
     foodiesrn_results = view_saved_recommendations(user_id)
-    prepngo_results = []
+    prepngo_results = get_prepngo_meals(user_id)
 
 
     return render_template("my_recommendations.html",
@@ -81,6 +82,7 @@ def clear_foodiesrn():
     clear_saved_recommendations(session["user_id"])
     return redirect(url_for("my_recommendations"))
 
+
 @app.route("/clear_prepngo", methods=["POST"])
 def clear_prepngo():
     if "user_id" not in session:
@@ -93,8 +95,8 @@ def clear_prepngo():
 def prep():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
-
-    return render_template("prep.html")
+    run_prepngo(session["user_id"])
+    return redirect(url_for("my_recommendations"))
 
 
 @app.route("/foodies", methods=["GET", "POST"])
@@ -119,7 +121,7 @@ def foodies():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("index"))
+    return redirect(url_for("login_view"))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)

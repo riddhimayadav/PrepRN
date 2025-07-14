@@ -10,7 +10,7 @@ import requests
 import pyfiglet
 from colorama import init, Fore, Style
 from typing import List
-from database_functions import (
+from .database_functions import (
     init_db,
     save_request,
     save_meals,
@@ -35,7 +35,7 @@ if not GOOGLE_API_KEY:
 # Initialize Gemini
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
-DB_PATH = 'mealplanner.db'
+DB_PATH = 'preprn.db'
 
 def call_spoonacular(budget, diets):
     # Fetch 3 recipes under budget matching diets from Spoonacular.
@@ -90,7 +90,7 @@ def generate_shopping_list_with_genai(recipes: List[dict]) -> str:
     resp = model.generate_content(prompt)
     return resp.text.strip()
 
-def main():
+def main(user_id):
     init(autoreset=True)
 
     ascii_banner = pyfiglet.figlet_format("Prep and Go ")
@@ -132,7 +132,7 @@ def main():
     print(local_stores_text)
 
     # 5. Save request
-    request_id = save_request(conn, budget, servings, diets)
+    request_id = save_request(conn, user_id, budget, servings, diets)
     print(f"Request #{request_id} saved with budget ${budget}, servings {servings}, diets {diets}.")
 
     save_local_stores(conn, request_id, city, state, local_stores_text)

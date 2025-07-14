@@ -8,6 +8,7 @@ def init_db(path: str) -> sqlite3.Connection:
     cur.execute('''
         CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             budget REAL NOT NULL,
             servings INTEGER NOT NULL,
             diets TEXT
@@ -48,14 +49,14 @@ def init_db(path: str) -> sqlite3.Connection:
     return conn
 
 def save_request(
-    conn: sqlite3.Connection, budget: float, servings: int, diets: List[str]
+    conn: sqlite3.Connection, user_id: int, budget: float, servings: int, diets: List[str]
 ) -> int:
     """Save a meal-plan request (including servings) and return its ID."""
     diets_str = ','.join(diets)
     cur = conn.cursor()
     cur.execute(
-        'INSERT INTO requests (budget, servings, diets) VALUES (?, ?, ?)',
-        (budget, servings, diets_str)
+        'INSERT INTO requests (user_id, budget, servings, diets) VALUES (?, ?, ?)',
+        (user_id, budget, servings, diets_str)
     )
     conn.commit()
     return cur.lastrowid

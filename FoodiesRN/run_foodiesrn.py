@@ -5,6 +5,9 @@ import google.generativeai as genai
 import pandas as pd
 import sqlalchemy as db
 from sqlalchemy import inspect
+from dotenv import load_dotenv
+
+load_dotenv()
 
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
@@ -110,6 +113,8 @@ def search_yelp(user_input):
 # return food blurb for user display
 
 genai.configure(api_key=GENAI_KEY)
+print("GENAI_KEY is", repr(os.getenv("GENAI_KEY")))
+
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 
@@ -199,6 +204,9 @@ def view_saved_recommendations(user_id):
             """),
             {"uid": user_id}
         ).fetchall()
+    
+    if return_results:
+        return results
 
     return results
 
