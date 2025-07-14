@@ -221,45 +221,31 @@ def clear_saved_recommendations(user_id):
     print("\nAll your saved recommendations have been cleared.")
 
 
-def run_restaurant_search(user_id, session_recs):
-    user_input = get_user_input()
+def run_restaurant_search(user_input, user_id):
     print("\n🔍 Generating your personalized recommendations...\n")
     results = search_yelp(user_input)
 
     if results:
         filtered_results = [r for r in results if r["rating"] > 3.5]
+        if not filtered_results:
+            return []
         num_recs = min(3, len(filtered_results))
         top_recs = random.sample(filtered_results, k=num_recs)
 
         blurbs = generate_blurbs(top_recs, user_input)
 
         for biz, blurb in zip(top_recs, blurbs):
-            print(f"\n{biz['name']} – {biz['location']}")
-            print(f"Rating: {biz['rating']} | Price: {biz['price']}")
-            print()
-            print(blurb)
-            print()
-            print(f"Yelp URL: {biz['url']}")
-            print("-" * 40)
+            biz["blurb"] = blurb
+            biz["user_location"] = user_input["location"]
+            biz["cuisine"] = user_input["cuisine"]
+            biz["vibe"] = user_input["vibe"]
+            biz["user_id"] = user_id
 
-            session_recs.append({
-                "name": biz["name"],
-                "location": biz["location"],
-                "price": biz["price"],
-                "rating": biz["rating"],
-                "url": biz["url"],
-                "user_location": user_input["location"],
-                "cuisine": user_input["cuisine"],
-                "vibe": user_input["vibe"],
-                "user_id": user_id
-            })
-
-        if session_recs:
-            save_to_db(session_recs, user_id)
-            session_recs.clear()
+        save_to_db(top_recs, user_id)
+        return top_recs
 
     else:
-        print("No matches found. Try adjusting your preferences.")
+        return []
 
 
 

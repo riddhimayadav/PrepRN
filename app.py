@@ -83,7 +83,19 @@ def foodies():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
 
-    return render_template("foodies.html")
+    if request.method == "POST":
+        # Get form data from user
+        user_input = {
+            "location": request.form.get("location"),
+            "cuisine": request.form.get("cuisine"),
+            "price": request.form.get("price"),
+            "vibe": request.form.get("vibe"),
+        }
+
+        results = run_restaurant_search(user_input, session["user_id"])
+        return render_template("foodies.html", results=results)
+
+    return render_template("foodies.html", results=None)
 
 
 @app.route("/logout")
