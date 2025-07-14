@@ -2,16 +2,34 @@
 
 {% block content %}
   <h2>📄 Your Saved Recommendations</h2>
-  {% if results %}
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>🍽️ FoodiesRN Picks</h3>
+    <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
+      <button type="submit">Clear All</button>
+    </form>
+  </div>
+
+  {% if foodiesrn_results %}
     <ul>
-      {% for r in results %}
+      {% for r in foodiesrn_results %}
       <li>
         <strong>{{ r.name }}</strong> – {{ r.location }}<br>
-        Rating: {{ r.rating }} | Price: {{ r.price }}
+        Rating: {{ r.rating }} | Price: {{ r.price }}<br>
+        <a href="{{ r.url }}" target="_blank">Yelp Link</a>
       </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>No saved recommendations yet.</p>
+    <p>No FoodiesRN recommendations yet.</p>
   {% endif %}
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>🥗 PrepNGo Meals</h3>
+    <form method="POST" action="{{ url_for('clear_prepngo') }}">
+      <button type="submit">Clear All</button>
+    </form>
+  </div>
+  <p>This feature is under construction.</p>
+
 {% endblock %}

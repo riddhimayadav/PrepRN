@@ -10,7 +10,7 @@ YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
 
 engine = db.create_engine("sqlite:///preprn.db")
-TABLE_NAME = "foodiesrn_recommendations"
+TABLE_RN = "foodiesrn_recommendations"
 
 
 # reprompts if not valid input
@@ -162,7 +162,7 @@ def generate_blurbs(businesses, user_input):
 
 def clear_rec_table():
     with engine.connect() as connection:
-        connection.execute(db.text(f"DELETE FROM {TABLE_NAME}"))
+        connection.execute(db.text(f"DELETE FROM {TABLE_RN}"))
         connection.commit()
 
 
@@ -171,7 +171,7 @@ def save_to_db(results, user_id):
         for r in results:
             exists = connection.execute(
                 db.text(f"""
-                    SELECT 1 FROM {TABLE_NAME} 
+                    SELECT 1 FROM {TABLE_RN} 
                     WHERE user_id = :uid AND name = :name
                 """),
                 {"uid": user_id, "name": r["name"]}
@@ -180,7 +180,7 @@ def save_to_db(results, user_id):
             if not exists:
                 connection.execute(
                     db.text(f"""
-                        INSERT INTO {TABLE_NAME} 
+                        INSERT INTO {TABLE_RN} 
                         (name, location, price, rating, url, user_location, cuisine, vibe, user_id)
                         VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id)
                     """),
@@ -194,28 +194,19 @@ def view_saved_recommendations(user_id):
         results = connection.execute(
             db.text(f"""
                 SELECT name, location, rating, price, url 
-                FROM {TABLE_NAME} 
+                FROM {TABLE_RN} 
                 WHERE user_id = :uid
             """),
             {"uid": user_id}
         ).fetchall()
 
-        if results:
-            print("\nYour Saved Recommendations:")
-            print("-" * 40)
-            for r in results:
-                print(f"{r.name} – {r.location}")
-                print(f"Rating: {r.rating} | Price: {r.price}")
-                print(f"Yelp URL: {r.url}")
-                print("-" * 40)
-        else:
-            print("\nYou don't have any saved recommendations yet.")
+    return results
 
 
 def clear_saved_recommendations(user_id):
     with engine.connect() as connection:
         connection.execute(
-            db.text(f"DELETE FROM {TABLE_NAME} WHERE user_id = :uid"),
+            db.text(f"DELETE FROM {TABLE_RN} WHERE user_id = :uid"),
             {"uid": user_id}
         )
         connection.commit()

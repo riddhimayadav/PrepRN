@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from shared.auth import create_user_table, get_user_id
-from FoodiesRN.run_foodiesrn import run_restaurant_search
+from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
 
@@ -63,11 +63,30 @@ def my_recommendations():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
     
-    results = [
-        {"name": "Sushi Place", "location": "Austin, TX", "rating": 4.5, "price": "$$"},
-        {"name": "Taco Spot", "location": "Austin, TX", "rating": 4.2, "price": "$"},
-    ]
-    return render_template("my_recommendations.html", results=results)
+    user_id = session["user_id"]
+    foodiesrn_results = view_saved_recommendations(user_id)
+    prepngo_results = []
+
+
+    return render_template("my_recommendations.html",
+                           foodiesrn_results=foodiesrn_results,
+                           prepngo_results=prepngo_results)
+
+
+@app.route("/clear_foodiesrn", methods=["POST"])
+def clear_foodiesrn():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+
+    clear_saved_recommendations(session["user_id"])
+    return redirect(url_for("my_recommendations"))
+
+@app.route("/clear_prepngo", methods=["POST"])
+def clear_prepngo():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+
+    return redirect(url_for("my_recommendations"))
 
 
 @app.route("/prep", methods=["GET", "POST"])
@@ -84,7 +103,6 @@ def foodies():
         return redirect(url_for("login_view"))
 
     if request.method == "POST":
-        # Get form data from user
         user_input = {
             "location": request.form.get("location"),
             "cuisine": request.form.get("cuisine"),
