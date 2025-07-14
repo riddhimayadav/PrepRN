@@ -1,5 +1,3 @@
-# File: shared/auth.py
-
 import sqlalchemy as db
 from sqlalchemy import inspect
 
