@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h2>📄 Your Saved Recommendations</h2>
+  {% if results %}
+    <ul>
+      {% for r in results %}
+      <li>
+        <strong>{{ r.name }}</strong> – {{ r.location }}<br>
+        Rating: {{ r.rating }} | Price: {{ r.price }}
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No saved recommendations yet.</p>
+  {% endif %}
+{% endblock %}

@@ -58,11 +58,33 @@ def dashboard():
         return redirect(url_for("login_view"))
     return render_template("dashboard.html", username=session["username"])
 
-@app.route("/recommendations")
-def recommendations():
+@app.route("/my_recommendations")
+def my_recommendations():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
-    return render_template("recommendations.html")
+    
+    results = [
+        {"name": "Sushi Place", "location": "Austin, TX", "rating": 4.5, "price": "$$"},
+        {"name": "Taco Spot", "location": "Austin, TX", "rating": 4.2, "price": "$"},
+    ]
+    return render_template("my_recommendations.html", results=results)
+
+
+@app.route("/prep", methods=["GET", "POST"])
+def prep():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+
+    return render_template("prep.html")
+
+
+@app.route("/foodies", methods=["GET", "POST"])
+def foodies():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+
+    return render_template("foodies.html")
+
 
 @app.route("/logout")
 def logout():

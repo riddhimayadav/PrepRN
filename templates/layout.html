@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PrepRN</title>
+</head>
+<body>
+  {% if session.username %}
+  <nav>
+    <a href="{{ url_for('dashboard') }}">🏠 Home</a> |
+    <a href="{{ url_for('my_recommendations') }}">📄 View My Recs</a> |
+    <a href="{{ url_for('logout') }}">🚪 Sign Out</a>
+  </nav>
+  <hr>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</body>
+</html>
