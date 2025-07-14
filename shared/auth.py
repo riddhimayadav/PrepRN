@@ -3,7 +3,7 @@
 import sqlalchemy as db
 from sqlalchemy import inspect
 
-engine = db.create_engine('sqlite:///recommendations.db')
+engine = db.create_engine("sqlite:///preprn.db")
 inspector = inspect(engine)
 
 def create_user_table():

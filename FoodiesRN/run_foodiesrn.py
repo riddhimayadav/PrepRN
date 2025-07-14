@@ -9,7 +9,8 @@ from sqlalchemy import inspect
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
 
-engine = db.create_engine("sqlite:///recommendations.db")
+engine = db.create_engine("sqlite:///preprn.db")
+TABLE_NAME = "foodiesrn_recommendations"
 
 
 # reprompts if not valid input
@@ -161,7 +162,7 @@ def generate_blurbs(businesses, user_input):
 
 def clear_rec_table():
     with engine.connect() as connection:
-        connection.execute(db.text("DELETE FROM recommendations"))
+        connection.execute(db.text(f"DELETE FROM {TABLE_NAME}"))
         connection.commit()
 
 
@@ -169,8 +170,8 @@ def save_to_db(results, user_id):
     with engine.connect() as connection:
         for r in results:
             exists = connection.execute(
-                db.text("""
-                    SELECT 1 FROM recommendations 
+                db.text(f"""
+                    SELECT 1 FROM {TABLE_NAME} 
                     WHERE user_id = :uid AND name = :name
                 """),
                 {"uid": user_id, "name": r["name"]}
@@ -178,8 +179,8 @@ def save_to_db(results, user_id):
 
             if not exists:
                 connection.execute(
-                    db.text("""
-                        INSERT INTO recommendations 
+                    db.text(f"""
+                        INSERT INTO {TABLE_NAME} 
                         (name, location, price, rating, url, user_location, cuisine, vibe, user_id)
                         VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id)
                     """),
@@ -191,9 +192,9 @@ def save_to_db(results, user_id):
 def view_saved_recommendations(user_id):
     with engine.connect() as connection:
         results = connection.execute(
-            db.text("""
+            db.text(f"""
                 SELECT name, location, rating, price, url 
-                FROM recommendations 
+                FROM {TABLE_NAME} 
                 WHERE user_id = :uid
             """),
             {"uid": user_id}
@@ -214,7 +215,7 @@ def view_saved_recommendations(user_id):
 def clear_saved_recommendations(user_id):
     with engine.connect() as connection:
         connection.execute(
-            db.text("DELETE FROM recommendations WHERE user_id = :uid"),
+            db.text(f"DELETE FROM {TABLE_NAME} WHERE user_id = :uid"),
             {"uid": user_id}
         )
         connection.commit()
