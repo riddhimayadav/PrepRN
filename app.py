@@ -3,10 +3,12 @@ from shared.auth import create_user_table, get_user_id
 from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
-from shared.prepngo_helpers import get_prepngo_meals
-from prepngo.PrepnGo import main as run_prepngo
-from prepngo.database_functions import *
+# from shared.prepngo_helpers import get_prepngo_meals
+# from prepngo.PrepnGo import main as run_prepngo
+# from prepngo.database_functions import *
+from dotenv import load_dotenv
 
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
@@ -66,12 +68,11 @@ def my_recommendations():
     
     user_id = session["user_id"]
     foodiesrn_results = view_saved_recommendations(user_id)
-    prepngo_results = get_prepngo_meals(user_id)
+    #prepngo_results = get_prepngo_meals(user_id)
 
 
     return render_template("my_recommendations.html",
-                           foodiesrn_results=foodiesrn_results,
-                           prepngo_results=prepngo_results)
+                           foodiesrn_results=foodiesrn_results)
 
 
 @app.route("/clear_foodiesrn", methods=["POST"])
@@ -95,7 +96,7 @@ def clear_prepngo():
 def prep():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
-    run_prepngo(session["user_id"])
+    #run_prepngo(session["user_id"])
     return redirect(url_for("my_recommendations"))
 
 

@@ -17,6 +17,7 @@ from .database_functions import (
     save_feedback,
     save_local_stores
 )
+from genai_utils import get_genai_model
 
 # Your AI Studio API Key
 
@@ -33,8 +34,7 @@ if not GOOGLE_API_KEY:
     exit(1)
 
 # Initialize Gemini
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = get_genai_model(GOOGLE_API_KEY, model_name="gemini-2.5-flash")
 DB_PATH = 'preprn.db'
 
 def call_spoonacular(budget, diets):

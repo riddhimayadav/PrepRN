@@ -6,6 +6,7 @@ import pandas as pd
 import sqlalchemy as db
 from sqlalchemy import inspect
 from dotenv import load_dotenv
+from genai_utils import get_genai_model
 
 load_dotenv()
 
@@ -112,10 +113,7 @@ def search_yelp(user_input):
 
 # return food blurb for user display
 
-genai.configure(api_key=GENAI_KEY)
-print("GENAI_KEY is", repr(os.getenv("GENAI_KEY")))
-
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
 
 
 def generate_blurbs(businesses, user_input):
@@ -205,7 +203,7 @@ def view_saved_recommendations(user_id):
             {"uid": user_id}
         ).fetchall()
     
-    if return_results:
+    if results:
         return results
 
     return results
