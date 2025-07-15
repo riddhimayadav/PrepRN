@@ -66,21 +66,67 @@ button:hover {
   background-color: #9ba47a;
 }
 
-.recommendation {
-  border: 1px solid #ccc;
-  padding: 1em;
-  margin: 1em auto;
-  max-width: 500px;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+.recommendation-section {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 600px;
 }
 
 #recommendations {
   text-align: center;
-  margin-top: 3rem;
   font-size: 1.4rem;
+  font-weight: bold;
+  color: #444;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.recommendation {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.recommendation h4 {
+  margin: 0;
+  font-size: 1.1rem;
   color: #333;
 }
 
+.recommendation p {
+  margin: 0.5em 0;
+  color: #555;
+  font-size: 0.95rem;
+}
 
+.recommendation a {
+  color: #ACB288;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.recommendation a:hover {
+  text-decoration: underline;
+}
+
+.recommendation-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.recommendation-section,
+.recommendation-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}

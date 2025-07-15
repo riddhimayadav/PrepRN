@@ -126,7 +126,7 @@ def generate_blurbs(businesses, user_input):
         "Also, based on your knowledge, what do people typically say about "
         f"the particular restuarant in {user_input['location']}?"
         "Only include positive traits, and explicitly write 'people are saying' add in what pros."
-        "Add this one extra sentence to each blurb, don't create separate section."
+        "Add this one extra sentence to each blurb, don't create separate section. No emojis."
     )
 
     for i, biz in enumerate(businesses, 1):

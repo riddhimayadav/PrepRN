@@ -51,6 +51,7 @@
 </div>
 
 {% if results %}
+<div class="recommendation-wrapper">
   <h3 id="recommendations">Top Recommendations:</h3>
   {% for r in results %}
     <div class="recommendation">
@@ -60,7 +61,9 @@
       <a href="{{ r.url }}" target="_blank">View on Yelp</a>
     </div>
   {% endfor %}
+</div>
 {% endif %}
+
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
