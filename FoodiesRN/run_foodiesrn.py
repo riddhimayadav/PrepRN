@@ -12,6 +12,8 @@ load_dotenv()
 
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
+print("GENAI_KEY in Flask:", GENAI_KEY)
+
 
 engine = db.create_engine("sqlite:///preprn.db")
 TABLE_RN = "foodiesrn_recommendations"
@@ -113,10 +115,10 @@ def search_yelp(user_input):
 
 # return food blurb for user display
 
-model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
-
 
 def generate_blurbs(businesses, user_input):
+    model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
+
     prompt = (
         "Write a short, fun, Gen Z-style blurb for each of the following restaurants. "
         "Keep each blurb to 2–3 sentences max. Make each blurb exciting and positive. "
