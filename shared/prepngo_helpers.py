@@ -1,13 +1,24 @@
 import sqlite3
+from prepngo.PrepnGo import main as run_prepngo_main
+from prepngo.database_functions import init_db, save_request, save_meals, get_saved_meals, clear_meals
 
-def get_prepngo_meals(user_id):
-    conn = sqlite3.connect('preprn.db')
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT title, price, summary, source_url
-        FROM meals
-        WHERE request_id IN (SELECT id FROM requests WHERE user_id = ?)
-    """, (user_id,))
-    meals = cur.fetchall()
-    conn.close()
+def get_prepngo_meals(user_input, user_id):
+    meals = run_prepngo_main(user_input)
     return meals
+
+def save_prepngo_results(meals, user_input, user_id):
+    conn = init_db('preprn.db')
+    req_id = save_request(conn, user_id, user_input['budget'], user_input['servings'], user_input['diets'])
+    save_meals(conn, req_id, meals)
+    conn.close()
+
+def get_saved_prepngo(user_id):
+    conn = init_db('preprn.db')
+    results = get_saved_meals(conn, user_id)
+    conn.close()
+    return results
+
+def clear_saved_prepngo(user_id):
+    conn = init_db('preprn.db')
+    clear_meals(conn, user_id)
+    conn.close()

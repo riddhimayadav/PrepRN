@@ -6,6 +6,7 @@ from shared.auth import login
 # from shared.prepngo_helpers import get_prepngo_meals
 # from prepngo.PrepnGo import main as run_prepngo
 # from prepngo.database_functions import *
+from shared.prepngo_helpers import get_prepngo_meals, save_prepngo_results, get_saved_prepngo, clear_saved_prepngo
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,12 +73,10 @@ def my_recommendations():
     
     user_id = session["user_id"]
     foodiesrn_results = view_saved_recommendations(user_id)
-    #prepngo_results = get_prepngo_meals(user_id)
-
-
+    prepngo_results = get_saved_prepngo(session["user_id"])
     return render_template("my_recommendations.html",
-                           foodiesrn_results=foodiesrn_results)
-
+                           foodiesrn_results=foodiesrn_results,
+                           prepngo_results=prepngo_results)
 
 @app.route("/clear_foodiesrn", methods=["POST"])
 def clear_foodiesrn():
@@ -92,15 +91,7 @@ def clear_foodiesrn():
 def clear_prepngo():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
-
-    return redirect(url_for("my_recommendations"))
-
-
-@app.route("/prep", methods=["GET", "POST"])
-def prep():
-    if "user_id" not in session:
-        return redirect(url_for("login_view"))
-    #run_prepngo(session["user_id"])
+    clear_saved_prepngo(session["user_id"])
     return redirect(url_for("my_recommendations"))
 
 
@@ -126,8 +117,25 @@ def foodies():
 
     return render_template("foodies.html", results=None)
 
-
-
+@app.route("/prep", methods=["GET", "POST"])
+def prep():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+    if request.method == "POST":
+        user_input = {
+            "location": request.form.get("location"),
+            "budget": request.form.get("budget"),
+            "servings": request.form.get("servings"),
+            "diets": request.form.getlist("diet"),
+            "user_id": session["user_id"]
+        }
+        if not all([user_input['location'], user_input['budget'], user_input['servings']]):
+            print("Please fill out all fields.")
+            return render_template("prep.html", results=None)  
+        results = get_prepngo_meals(user_input, session["user_id"])
+        save_prepngo_results(results, session["user_id"])
+        return render_template("prep.html", results=results, user_input=user_input)        
+    return render_template("prep.html", results=None)
 
 @app.route("/logout")
 def logout():

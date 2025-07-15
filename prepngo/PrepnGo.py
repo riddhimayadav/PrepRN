@@ -4,11 +4,10 @@
 # Uses Gemini API to summarize recipes
 # Saves to SQLite DB
 import os
-import sqlite3
 import google.generativeai as genai
+from prepngo.spoonacular_utils import get_meal_plan
+from prepngo.gemini_utils import get_summary
 import requests
-import pyfiglet
-from colorama import init, Fore, Style
 from typing import List
 from .database_functions import (
     init_db,
@@ -90,104 +89,18 @@ def generate_shopping_list_with_genai(recipes: List[dict]) -> str:
     resp = model.generate_content(prompt)
     return resp.text.strip()
 
-def main(user_id):
-    init(autoreset=True)
+def main(user_input: dict) -> list:
 
-    ascii_banner = pyfiglet.figlet_format("Prep and Go ")
-    print(Fore.MAGENTA + ascii_banner)
-    print(Fore.MAGENTA + Style.BRIGHT + "Welcome to the Prep and Go!\n")
+    budget = user_input.get('budget')
+    servings = user_input.get('servings')
+    diets = user_input.get('diets', [])
+    user_id = user_input.get('user_id')
 
-    # 1. Init DB
-    conn = init_db(DB_PATH)
+    # Get meals from Spoonacular API
+    meals = get_meal_plan(budget, servings, diets)
 
-    # 2. Get user budget
-    while True:
-        try:
-            budget = float(input("Enter your meal budget (e.g. 25.0): ").strip())
-            break
-        except ValueError:
-            print("Please enter a valid number.")
-    
-    # 3 Prompt for servings
-    while True:
-        try:
-            servings = int(input("How many people are you cooking for? ").strip())
-            if servings < 1:
-                raise ValueError
-            break
-        except ValueError:
-            print("Please enter a valid integer (at least 1).")
+    # Add Gemini AI summaries if needed
+    for meal in meals:
+        meal['summary'] = get_summary(meal['title'])
 
-    # 4. Get user dietary restrictions
-    diets_input = input("Enter any dietary restrictions separated by commas (press Enter if none): ").strip()
-    diets = [d.strip() for d in diets_input.split(",") if d.strip()]
-
-    city = input("Enter your city: ").strip()
-    state = input("Enter your state (2-letter abbreviation): ").strip()
-
-    # 4.6 Ask Gemini for local store ideas
-    print("\nAsking Gemini for local stores in your area…\n")
-    local_stores_text = get_local_stores_from_gemini(city, state, budget)
-    print("=== Gemini's Suggested Local Stores ===")
-    print(local_stores_text)
-
-    # 5. Save request
-    request_id = save_request(conn, user_id, budget, servings, diets)
-    print(f"Request #{request_id} saved with budget ${budget}, servings {servings}, diets {diets}.")
-
-    save_local_stores(conn, request_id, city, state, local_stores_text)
-
-
-    # 5. Fetch recipes using Spoonacular API
-    try:
-        raw = call_spoonacular(budget, diets)
-    except requests.HTTPError as e:
-        print(f"No meal ideas were generated. Please try with different parameters or try again later: {e}")
-        conn.close()
-        return
-    # 6. Show meals and prepare for DB insert
-    meals_to_save = []
-    print("\nHere are your meal suggestions:\n")
-
-    for item in raw:
-        base_price = item.get('pricePerServing', 0) / 100
-        total_price = base_price * servings
-        summary = summarize_with_genai(item.get('summary', ''))
-        
-        meals_to_save.append({
-            'title': item.get('title', 'Unknown'),
-            'price': item.get('pricePerServing', 0) / 100,
-            'diets': item.get('diets', []),
-            'summary': summary,
-            'source_url': item.get('sourceUrl', '#'),
-        })
-    if not meals_to_save:
-        print("No recipes found under that budget/diet combination.")
-        conn.close()
-        return
-    # 7. Show the meals and save them
-    display_meals(meals_to_save)
-    save_meals(conn, request_id, meals_to_save)
-
-    # optional: shopping list
-    want_list = input("\nWould you like a consolidated shopping list? (yes/no): ").strip().lower()
-    if want_list.startswith('y'):
-        print("\nGenerating shopping list…\n")
-        shopping_list = generate_shopping_list_with_genai(meals_to_save)
-        print(shopping_list)
-
-    # 8. Feedback
-    print("\n--- Feedback ---")
-    feedback = input("Are you satisfied with these meal suggestions? (yes/no): ").strip().lower()
-    satisfied = feedback in ["yes", "y"]
-    comments = input("Any comments? (optional): ").strip()
-    save_feedback(conn, request_id, satisfied, comments)
-    conn.close()
-
-    if satisfied:
-        print("\nGreat! Thanks for your feedback.")
-    else:
-        print("\nSorry to hear that. We'll improve next time.")
-
-if __name__ == '__main__':
-    main()
+    return meals

@@ -1,6 +1,78 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h2>🥗 PrepNGo Coming Soon!</h2>
-  <p>Here’s where you’ll plan meals and get grocery lists.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PrepRN - Eat In</title>
+</head>
+<body>
+
+  <header>
+    <h1>PrepRN</h1>
+  </header>
+
+  <main>
+    <h2>← Eat In</h2>
+    <form method="POST" action="{{ url_for('prep') }}"> 
+      <label>
+        Location: <br>
+        <input type="text" name="location" placeholder="(e.g. Austin, TX)">
+      </label>
+      <br><br>
+
+      <!-- Budget -->
+      <label>
+        Budget: <br>
+        <input type="number" step="0.01" name="budget" placeholder="($.$$)">
+      </label>
+      <br><br>
+
+      <!-- Dietary Restrictions -->
+      <fieldset>
+        <legend>Dietary Restrictions</legend>
+        <label><input type="checkbox" name="diet" value="vegetarian"> Vegetarian</label><br>
+        <label><input type="checkbox" name="diet" value="vegan"> Vegan</label><br>
+        <label><input type="checkbox" name="diet" value="paleo"> Paleo</label><br>
+        <label><input type="checkbox" name="diet" value="gluten free"> Gluten-free</label><br>
+        <label><input type="checkbox" name="diet" value="lactose free"> Lactose-free</label><br>
+        <label><input type="checkbox" name="diet" value="nut free"> Nut-free</label><br>
+        <label><input type="checkbox" name="diet" value="halal"> Halal</label><br>
+        <label><input type="checkbox" name="diet" value="kosher"> Kosher</label><br>
+        <label><input type="checkbox" name="diet" value="keto"> Keto</label><br>
+        <label><input type="checkbox" name="diet" value="pescatarian"> Pescatarian</label><br>
+        <label><input type="checkbox" name="diet" value="low carb"> Low Carb</label><br>
+        <label><input type="checkbox" name="diet" value="low sugar"> Low Sugar</label><br>
+        <label><input type="checkbox" name="diet" value="other"> Other</label>
+      </fieldset>
+      <br>
+
+      <!-- Number of People -->
+      <label>
+        How many people are you cooking for? <br>
+        <input type="number" name="servings" min="1" placeholder="(e.g. 2)">
+      </label>
+      <br><br>
+
+      <!-- Submit -->
+      <button type="submit">Continue</button>
+    </form>
+  {% if results %}
+  <h3>🥗 Your Meal Plan:</h3>
+  <ul>
+    {% for m in results %}
+      <li>
+        <strong>{{ m[0] }}</strong> – ${{ "%.2f"|format(m[1]) }}<br>
+        {{ m[2] }}<br>
+        <a href="{{ m[3] }}" target="_blank">View Recipe</a>
+      </li>
+    {% endfor %} 
+  </ul>
+  {% endif %}
+  </main>
+
+</body>
+</html>
+
 {% endblock %}

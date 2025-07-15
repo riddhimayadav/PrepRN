@@ -55,7 +55,7 @@ def save_request(
     diets_str = ','.join(diets)
     cur = conn.cursor()
     cur.execute(
-        'INSERT INTO requests (user_id, budget, servings, diets) VALUES (?, ?, ?)',
+        'INSERT INTO requests (user_id, budget, servings, diets) VALUES (?, ?, ?, ?)',
         (user_id, budget, servings, diets_str)
     )
     conn.commit()
@@ -81,7 +81,6 @@ def save_meals(
         ))
     conn.commit()
 
-
 def save_feedback(
     conn: sqlite3.Connection, request_id: int, satisfied: bool, comments: str
 ) -> None:
@@ -92,6 +91,7 @@ def save_feedback(
         (request_id, int(satisfied), comments)
     )
     conn.commit()
+
 def save_local_stores(
     conn: sqlite3.Connection, request_id: int, city: str, state: str, suggestions: str
 ) -> None:
@@ -104,4 +104,35 @@ def save_local_stores(
         ''',
         (request_id, city, state, suggestions)
     )
+    conn.commit()
+
+def get_saved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
+    """Retrieve all saved meals for a user, joined with request metadata."""
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT meals.title, meals.price, meals.summary, meals.source_url
+        FROM meals
+        JOIN requests ON meals.request_id = requests.id
+        WHERE requests.user_id = ?
+        ORDER BY meals.id DESC
+    ''', (user_id,))
+    return cur.fetchall()
+
+def clear_meals(conn: sqlite3.Connection, user_id: int) -> None:
+    """Delete all meals and related requests for a user."""
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM requests WHERE user_id = ?', (user_id,))
+    request_ids = [row[0] for row in cur.fetchall()]
+
+    if request_ids:
+        # Delete meals linked to these requests
+        cur.execute(
+            f'DELETE FROM meals WHERE request_id IN ({",".join("?" * len(request_ids))})',
+            request_ids
+        )
+        # Optionally delete the requests themselves
+        cur.execute(
+            f'DELETE FROM requests WHERE id IN ({",".join("?" * len(request_ids))})',
+            request_ids
+        )
     conn.commit()
