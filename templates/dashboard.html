@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
-
-{% block content %}
-  <h2>Hey {{ username }}, what’s the plan for today?</h2>
-
-  <form action="{{ url_for('foodies') }}">
-    <button type="submit">🍽️ Eat Out</button>
-  </form>
-  <br>
-  <form action="{{ url_for('prep') }}">
-    <button type="submit">🥗 Stay In</button>
-  </form>
+{% block content %} 
+    <h2>Hey {{ username }}, what’s the plan for today?</h2>
+ 
+    <form method="GET" action="{{ url_for('foodies') }}">
+        <button type="submit">🍽️ Eat Out</button>
+    </form>
+ 
+    <br> 
+    <form method="POST" action="{{ url_for('prep') }}"> 
+        <button type="submit">🥗 Stay In</button> 
+    </form> 
 {% endblock %}

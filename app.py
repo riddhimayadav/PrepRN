@@ -18,6 +18,8 @@ create_user_table()
 
 @app.route("/")
 @app.route("/home")
+def home():
+    return redirect(url_for("login_view"))
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup_view():
@@ -113,10 +115,16 @@ def foodies():
             "vibe": request.form.get("vibe"),
         }
 
+        if not all(user_input.values()):
+            print("Please fill out all fields.")
+            return render_template("foodies.html", results=None)
+
         results = run_restaurant_search(user_input, session["user_id"])
         return render_template("foodies.html", results=results)
 
     return render_template("foodies.html", results=None)
+
+
 
 
 @app.route("/logout")

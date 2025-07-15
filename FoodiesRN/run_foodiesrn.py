@@ -77,7 +77,7 @@ def search_yelp(user_input):
     params = {
         "location": user_input["location"],
         "term": f"{user_input['cuisine']} {user_input['vibe']}",
-        "categories": user_input["cuisine"].lower(),
+        "categories": (user_input.get("cuisine") or "").lower(),
         "price": price_map[user_input["price"]],
         "limit": 10
     }
