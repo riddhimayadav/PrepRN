@@ -1,4 +1,4 @@
-<style>
+
   body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -15,35 +15,31 @@
   }
 
   .nav-left .logo {
-    font-family: 'Segoe UI', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     color: black;
   }
 
   .nav-right a {
-  margin-left: 25px;
-  font-size: 1.2rem;
-  color: #333;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
+    margin-left: 25px;
+    font-size: 1.2rem;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
 
-.nav-right a:hover {
-  color: #ACB288;
-}
+  .nav-right a i {
+    color: #333;
+    transition: color 0.2s ease;
+  }
 
-.nav-right a i {
-  margin: 0;
-  color: #333;
-}
-
+  .nav-right a:hover,
+  .nav-right a:hover i {
+    color: #ACB288;
+  }
 
   hr {
     margin: 0;
     border: none;
     border-top: 1px solid #ddd;
   }
-
-
-</style>
