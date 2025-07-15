@@ -122,7 +122,7 @@ def generate_blurbs(businesses, user_input):
     prompt = (
         "Write a short, fun, Gen Z-style blurb for each of the following restaurants. "
         "Keep each blurb to 2–3 sentences max. Make each blurb exciting and positive. "
-        "Separate each restaurant clearly using numbered format (1., 2., 3.).\n\n"
+        "Separate each restaurant clearly using numbered format (1., 2., 3.) and just write the blurb, don't include restaurant name.\n\n"
         "Also, based on your knowledge, what do people typically say about "
         f"the particular restuarant in {user_input['location']}?"
         "Only include positive traits, and explicitly write 'people are saying' add in what pros."
@@ -144,20 +144,19 @@ def generate_blurbs(businesses, user_input):
     if response is None or not hasattr(response, "text") or not response.text.strip():
         return ["No blurb available."] * len(businesses)
 
-    raw_blurbs = response.text.strip().split("\n")
+    raw_blurbs = response.text.strip().split("\n\n")
     blurbs = []
-    current = ""
 
-    for line in raw_blurbs:
-        if line.strip().startswith(tuple(str(i) + "." for i in range(1, len(businesses) + 1))):
-            if current:
-                blurbs.append(current.strip())
-            current = line
+    for blurb in raw_blurbs:
+        if "." in blurb:
+            parts = blurb.split(".", 1)
+            if len(parts) == 2:
+                blurbs.append(parts[1].strip())
+            else:
+                blurbs.append(blurb.strip())
         else:
-            current += "\n" + line
+            blurbs.append(blurb.strip())
 
-    if current:
-        blurbs.append(current.strip())
 
     while len(blurbs) < len(businesses):
         blurbs.append("No blurb available.")

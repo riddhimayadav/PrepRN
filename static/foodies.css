@@ -75,3 +75,12 @@ button:hover {
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
+
+#recommendations {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+

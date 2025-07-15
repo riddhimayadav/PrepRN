@@ -51,7 +51,7 @@
 </div>
 
 {% if results %}
-  <h3>🎉 Top Recommendations:</h3>
+  <h3 id="recommendations">Top Recommendations:</h3>
   {% for r in results %}
     <div class="recommendation">
       <h4>{{ r.name }} – {{ r.location }}</h4>
@@ -61,4 +61,19 @@
     </div>
   {% endfor %}
 {% endif %}
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const resultsExist = {{ 'true' if results else 'false' }};
+    if (resultsExist) {
+      const recSection = document.getElementById('recommendations');
+      if (recSection) {
+        recSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
+</script>
+
+
 {% endblock %}
+
