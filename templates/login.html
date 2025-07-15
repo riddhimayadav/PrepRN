@@ -5,8 +5,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
-    <h1>👋 Welcome to PrepRN!</h1>
+    <h1>Welcome to PrepRN!</h1>
     <h2>Login</h2>
+    {% if error %}
+        <p style="color: red; text-align: center;">{{ error }}</p>
+    {% endif %}
+
     <form method="POST">
         {{ form.hidden_tag() }}
         <p>

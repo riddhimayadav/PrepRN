@@ -24,6 +24,7 @@ def home():
 @app.route("/signup", methods=["GET", "POST"])
 def signup_view():
     form = SignupForm()
+    error = None
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
@@ -35,13 +36,14 @@ def signup_view():
             session["user_id"] = user_id
             return redirect(url_for("dashboard"))
         else:
-            return "❌ Username already taken. <a href='/signup'>Try again</a>"
-    return render_template("signup.html", form=form)
+            error = "Username already taken."
+    return render_template("signup.html", form=form, error=error)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login_view():
     form = LoginForm()
+    error = None
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
@@ -53,8 +55,8 @@ def login_view():
             session["user_id"] = user_id
             return redirect(url_for("dashboard"))
         else:
-            return "❌ Invalid login. <a href='/login'>Try again</a>"
-    return render_template("login.html", form=form)
+            error = "Invalid username or password."
+    return render_template("login.html", form=form, error=error)
 
 
 @app.route("/dashboard")

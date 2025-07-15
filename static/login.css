@@ -38,7 +38,9 @@ input {
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1em;
+  box-sizing: border-box;
 }
+
 
 button, input[type=submit] {
   background-color: #ACB288;
