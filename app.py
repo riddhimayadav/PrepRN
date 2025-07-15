@@ -133,7 +133,7 @@ def prep():
             print("Please fill out all fields.")
             return render_template("prep.html", results=None)  
         results = get_prepngo_meals(user_input, session["user_id"])
-        save_prepngo_results(results, session["user_id"])
+        save_prepngo_results(results, user_input, session["user_id"])
         return render_template("prep.html", results=results, user_input=user_input)        
     return render_template("prep.html", results=None)
 

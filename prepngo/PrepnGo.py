@@ -6,7 +6,7 @@
 import os
 import google.generativeai as genai
 from prepngo.spoonacular_utils import get_meal_plan
-from prepngo.gemini_utils import get_summary
+from genai_utils import get_summary
 import requests
 from typing import List
 from .database_functions import (
@@ -91,10 +91,12 @@ def generate_shopping_list_with_genai(recipes: List[dict]) -> str:
 
 def main(user_input: dict) -> list:
 
-    budget = user_input.get('budget')
-    servings = user_input.get('servings')
+    budget = float(user_input["budget"])
+    servings = int(user_input["servings"])
     diets = user_input.get('diets', [])
-    user_id = user_input.get('user_id')
+    if isinstance(diets, str):
+        diets = [diets]
+    # user_id = user_input.get('user_id')
 
     # Get meals from Spoonacular API
     meals = get_meal_plan(budget, servings, diets)
