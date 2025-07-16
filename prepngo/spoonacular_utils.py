@@ -17,8 +17,19 @@ def get_meal_plan(budget, servings, diets):
         "maxPrice": max_price_per_meal
     }
 
+    print("\n--- DEBUG: Calling Spoonacular ---")
+    print("URL:", url)
+    print("Params:", params)
+
     response = requests.get(url, params=params)
-    data = response.json()
+    print("Status Code:", response.status_code)
+    print("Raw Response:", response.text[:500])
+
+    try:
+        data = response.json()
+    except Exception as e:
+        print("❌ ERROR parsing JSON:", e)
+        return []
 
     meals = []
     for item in data.get("results", []):
@@ -29,5 +40,7 @@ def get_meal_plan(budget, servings, diets):
             "summary": "",  # Gemini will add this later
             "source_url": item.get("sourceUrl", "")
         })
+
+    print("Parsed Meals:", meals)
 
     return meals

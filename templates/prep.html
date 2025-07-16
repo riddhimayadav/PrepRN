@@ -1,14 +1,6 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>PrepRN - Eat In</title>
-</head>
-<body>
-
   <header>
     <h1>PrepRN</h1>
   </header>
@@ -59,20 +51,17 @@
       <button type="submit">Continue</button>
     </form>
   {% if results %}
-  <h3>🥗 Your Meal Plan:</h3>
-  <ul>
-    {% for m in results %}
-      <li>
-        <strong>{{ m[0] }}</strong> – ${{ "%.2f"|format(m[1]) }}<br>
-        {{ m[2] }}<br>
-        <a href="{{ m[3] }}" target="_blank">View Recipe</a>
-      </li>
-    {% endfor %} 
-  </ul>
-  {% endif %}
+      <hr>
+      <h3>🥗 Your Meal Plan:</h3>
+      <ul>
+        {% for m in results %}
+          <li style="margin-bottom: 1em;">
+            <strong>{{ m['title'] }}</strong> – ${{ "%.2f"|format(m['price']) }}<br>
+            {{ m['summary'] }}<br>
+            <a href="{{ m['source_url'] }}" target="_blank">View Recipe</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   </main>
-
-</body>
-</html>
-
 {% endblock %}

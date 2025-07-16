@@ -126,6 +126,8 @@ def prep():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
 
+    results = None
+
     if request.method == "POST":
         user_input = {
             "location": request.form.get("location"),
@@ -138,15 +140,14 @@ def prep():
             flash("Please fill out all fields.")
             return redirect(url_for("prep"))
 
-        # Call your prepngo.py main function
-        results = run_prepngo_meals(user_input)
-        print("DEBUG: run_prepngo_meals output:", results)
-        # Store in session or pass to next page
-        session["prep_results"] = results
+        else:
+            # Call your prepngo.py main function
+            results = run_prepngo_meals(user_input)
+            print("DEBUG: run_prepngo_meals output:", results)
+            # Store in session or pass to next page
+            session["prep_results"] = results
 
-        return redirect(url_for("prep_results"))
-
-    return render_template("prep.html")
+    return render_template("prep.html", results=results)
 
 @app.route("/prep/results")
 def prep_results():

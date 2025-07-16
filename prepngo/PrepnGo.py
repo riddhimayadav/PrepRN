@@ -33,7 +33,7 @@ if not GOOGLE_API_KEY:
     exit(1)
 
 # Initialize Gemini
-model = get_genai_model(GOOGLE_API_KEY, model_name="gemini-2.5-flash")
+model = get_genai_model(GOOGLE_API_KEY, model_name="gemini-1.5-flash")
 DB_PATH = 'preprn.db'
 
 def call_spoonacular(budget, diets):
