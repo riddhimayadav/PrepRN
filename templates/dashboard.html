@@ -1,13 +1,17 @@
 {% extends "layout.html" %}
-{% block content %} 
-    <h2>Hey {{ username }}, what’s the plan for today?</h2>
- 
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+<div class="dashboard-wrapper">
+  <div class="container">
+    <h2>Hey {{ username }}, What’s The Plan For Today?</h2>
+
     <form method="GET" action="{{ url_for('foodies') }}">
         <button type="submit">🍽️ Eat Out</button>
     </form>
- 
-    <br> 
+
     <form method="POST" action="{{ url_for('prep') }}"> 
-        <button type="submit">🥗 Stay In</button> 
-    </form> 
+        <button type="submit">🥗 Eat In</button> 
+    </form>
+  </div>
+</div>
 {% endblock %}

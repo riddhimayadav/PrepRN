@@ -1,53 +1,82 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h2>🍽️ Find Your Next Spot</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='foodies.css') }}">
+<div class="eatout-wrapper">
+  <h2>Find Your Next Spot</h2>
 
-  <form method="POST">
-    <label>Location:</label>
-    <input name="location" placeholder="e.g., Austin, TX" required><br><br>
+  <form method="POST" class="eatout-form">
+    <div class="input-group">
+      <label><i class="fas fa-map-marker-alt"></i> Location:</label>
+      <input name="location" placeholder="(e.g., Austin, TX)" required>
+    </div>
 
-    <label>Cuisine:</label>
-    <select name="cuisine" required>
-      <option>Thai</option>
-      <option>Mexican</option>
-      <option>Vegan</option>
-      <option>American</option>
-      <option>Chinese</option>
-      <option>Barbeque</option>
-      <option>Greek</option>
-      <option>Indian</option>
-      <option>Italian</option>
-    </select><br><br>
+    <div class="input-group">
+      <label><i class="fas fa-utensils"></i> Food Type:</label>
+      <select name="cuisine" required>
+        <option>Thai</option>
+        <option>Mexican</option>
+        <option>Vegan</option>
+        <option>American</option>
+        <option>Chinese</option>
+        <option>Barbeque</option>
+        <option>Greek</option>
+        <option>Indian</option>
+        <option>Italian</option>
+      </select>
+    </div>
 
-    <label>Price:</label>
-    <select name="price" required>
-      <option>$</option>
-      <option>$$</option>
-      <option>$$$</option>
-      <option>$$$$</option>
-    </select><br><br>
+    <div class="input-group">
+      <label><i class="fas fa-wallet"></i> Budget:</label>
+      <select name="price" required>
+        <option>$</option>
+        <option>$$</option>
+        <option>$$$</option>
+        <option>$$$$</option>
+      </select>
+    </div>
 
-    <label>Vibe:</label>
-    <select name="vibe" required>
-      <option>Cozy</option>
-      <option>Trendy</option>
-      <option>Romantic</option>
-      <option>Casual</option>
-    </select><br><br>
+    <div class="input-group">
+      <label><i class="fas fa-heart"></i> Vibe / Mood:</label>
+      <select name="vibe" required>
+        <option>Cozy</option>
+        <option>Trendy</option>
+        <option>Romantic</option>
+        <option>Casual</option>
+      </select>
+    </div>
 
-    <button type="submit">🔍 Search</button>
+    <button type="submit">Continue</button>
   </form>
+</div>
 
-  {% if results %}
-    <h3>🎉 Top Recommendations:</h3>
-    {% for r in results %}
-      <div style="border:1px solid #ccc; padding:10px; margin:10px 0;">
-        <h4>{{ r.name }} – {{ r.location }}</h4>
-        <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
-        <p>{{ r.blurb }}</p>
-        <a href="{{ r.url }}" target="_blank">View on Yelp</a>
-      </div>
-    {% endfor %}
-  {% endif %}
+{% if results %}
+<div class="recommendation-wrapper">
+  <h3 id="recommendations">Top Recommendations:</h3>
+  {% for r in results %}
+    <div class="recommendation">
+      <h4>{{ r.name }} – {{ r.location }}</h4>
+      <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
+      <p>{{ r.blurb }}</p>
+      <a href="{{ r.url }}" target="_blank">View on Yelp</a>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const resultsExist = {{ 'true' if results else 'false' }};
+    if (resultsExist) {
+      const recSection = document.getElementById('recommendations');
+      if (recSection) {
+        recSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
+</script>
+
+
 {% endblock %}
+
