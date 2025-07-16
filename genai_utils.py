@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import os
 
-def get_genai_model(api_key: str, model_name: str = "gemini-pro"):
+def get_genai_model(api_key: str, model_name: str = "gemini-1.5-flash"):
     genai.configure(api_key=api_key)
     return genai.GenerativeModel(model_name)
 
@@ -10,7 +10,7 @@ def get_summary(title: str, model=None) -> str:
     try:
         if model is None:
             api_key = os.getenv("GOOGLE_API_KEY")
-            model = get_genai_model(api_key, "gemini-pro")
+            model = get_genai_model(api_key, "gemini-1.5-flash")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
