@@ -16,9 +16,14 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
-
+# spoon_key = os.getenv("SPOON_API_KEY")
+# yelp_key = os.getenv("YELP_API_KEY")
 create_user_table()
-
+api_key = os.getenv("SPOON_API_KEY")
+print("DEBUG Spoon Key:", api_key) 
+params = {
+    "apiKey": api_key
+}
 
 @app.route("/")
 @app.route("/home")

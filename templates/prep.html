@@ -1,12 +1,19 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <header>
-    <h1>PrepRN</h1>
-  </header>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PrepRN - Eat In</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='prep.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
 
   <main>
-    <h2>← Eat In</h2>
+    <h2>Eat In</h2>
     <form method="POST" action="{{ url_for('prep') }}"> 
       <label>
         Location: <br>
@@ -23,7 +30,7 @@
 
       <!-- Dietary Restrictions -->
       <fieldset>
-        <legend>Dietary Restrictions</legend>
+        <legend>Dietary Restrictions:</legend>
         <label><input type="checkbox" name="diet" value="vegetarian"> Vegetarian</label><br>
         <label><input type="checkbox" name="diet" value="vegan"> Vegan</label><br>
         <label><input type="checkbox" name="diet" value="paleo"> Paleo</label><br>
