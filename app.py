@@ -3,6 +3,9 @@ from shared.auth import create_user_table, get_user_id
 from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
+from prepngo.PrepnGo import main as run_prepngo_meals
+
+
 # from shared.prepngo_helpers import get_prepngo_meals
 # from prepngo.PrepnGo import main as run_prepngo
 # from prepngo.database_functions import *
@@ -119,23 +122,43 @@ def foodies():
 
 @app.route("/prep", methods=["GET", "POST"])
 def prep():
+    print("DEBUG /prep route called, method:", request.method)
     if "user_id" not in session:
         return redirect(url_for("login_view"))
+
     if request.method == "POST":
         user_input = {
             "location": request.form.get("location"),
             "budget": request.form.get("budget"),
             "servings": request.form.get("servings"),
-            "diets": request.form.getlist("diet"),
-            "user_id": session["user_id"]
+            "diets": request.form.getlist("diet"),  # checkbox list
         }
-        if not all([user_input['location'], user_input['budget'], user_input['servings']]):
-            print("Please fill out all fields.")
-            return render_template("prep.html", results=None)  
-        results = get_prepngo_meals(user_input, session["user_id"])
-        save_prepngo_results(results, user_input, session["user_id"])
-        return render_template("prep.html", results=results, user_input=user_input)        
-    return render_template("prep.html", results=None)
+
+        if not all([user_input["location"], user_input["budget"], user_input["servings"]]):
+            flash("Please fill out all fields.")
+            return redirect(url_for("prep"))
+
+        # Call your prepngo.py main function
+        results = run_prepngo_meals(user_input)
+        print("DEBUG: run_prepngo_meals output:", results)
+        # Store in session or pass to next page
+        session["prep_results"] = results
+
+        return redirect(url_for("prep_results"))
+
+    return render_template("prep.html")
+
+@app.route("/prep/results")
+def prep_results():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+
+    results = session.get("prep_results")
+    if not results:
+        flash("No meal plan generated yet.")
+        return redirect(url_for("prep"))
+
+    return render_template("prep_results.html", results=results)
 
 @app.route("/logout")
 def logout():
