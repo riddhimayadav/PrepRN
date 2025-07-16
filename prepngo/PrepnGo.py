@@ -5,7 +5,7 @@
 # Saves to SQLite DB
 import os
 import google.generativeai as genai
-from prepngo.spoonacular_utils import get_meal_plan
+from prepngo.spoonacular_utils import get_random_meal_plan
 from genai_utils import get_summary
 import requests
 from typing import List
@@ -38,7 +38,7 @@ DB_PATH = 'preprn.db'
 
 def call_spoonacular(budget, diets):
     # Fetch 3 recipes under budget matching diets from Spoonacular.
-    url = 'https://api.spoonacular.com/recipes/complexSearch'
+    url = 'https://api.spoonacular.com/recipes/random'
     params = {
         'apiKey': SPOON_API_KEY,
         'maxPrice': budget,
@@ -99,7 +99,7 @@ def main(user_input: dict) -> list:
     # user_id = user_input.get('user_id')
 
     # Get meals from Spoonacular API
-    meals = get_meal_plan(budget, servings, diets)
+    meals = get_random_meal_plan(budget, servings, diets)
 
     # Add Gemini AI summaries if needed
     for meal in meals:

@@ -25,6 +25,7 @@ params = {
     "apiKey": api_key
 }
 
+
 @app.route("/")
 @app.route("/home")
 def home():

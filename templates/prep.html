@@ -70,5 +70,16 @@
         {% endfor %}
       </ul>
     {% endif %}
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const resultsExist = {{ 'true' if results else 'false' }};
+            if (resultsExist) {
+                const recSection = document.getElementById('recommendations');
+                if (recSection) {
+                    recSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+            }
+        });
+    </script>
   </main>
 {% endblock %}
