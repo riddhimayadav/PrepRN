@@ -1,48 +1,77 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h2>📄 Your Saved Recommendations</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='my_recommendations.css') }}">
 
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h3>🍽️ FoodiesRN Picks</h3>
-    <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
-      <button type="submit">Clear All</button>
-    </form>
-  </div>
+<h2>Your Saved Recommendations</h2>
 
-  {% if foodiesrn_results %}
-    <ul>
-      {% for r in foodiesrn_results %}
-      <li>
-        <strong>{{ r.name }}</strong> – {{ r.location }}<br>
-        Rating: {{ r.rating }} | Price: {{ r.price }}<br>
-        <a href="{{ r.url }}" target="_blank">Yelp Link</a>
-      </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No FoodiesRN recommendations yet.</p>
-  {% endif %}
+<!-- Tabs -->
+<div class="tab-buttons">
+  <button class="tab-button active" onclick="showTab('foodies')">🍽️ FoodiesRN</button>
+  <button class="tab-button" onclick="showTab('prep')">🥗 PrepNGo</button>
+</div>
 
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h3>🥗 PrepNGo Meals</h3>
-    <form method="POST" action="{{ url_for('clear_prepngo') }}">
-      <button type="submit">Clear All</button>
-    </form>
-  </div>
-  {% if prepngo_results %}
-    <ul>
-        {% for m in prepngo_results %}
-        <li>
-        <strong>{{ m[0] }}</strong> – ${{ "%.2f"|format(m[1]) }}<br>
-        {{ m[2] }}<br>
-        <a href="{{ m[3] }}" target="_blank">View Recipe</a>
-        </li>
+<!-- FoodiesRN Section -->
+<div id="foodies" class="tab-content">
+  <div class="card-section">
+    <div class="section-header">
+      <h3>🍽️ FoodiesRN Picks</h3>
+      <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
+        <button type="submit">Clear All</button>
+      </form>
+    </div>
+
+    {% if foodiesrn_results %}
+      <div class="card-container">
+        {% for r in foodiesrn_results %}
+          <div class="card">
+            <strong>{{ r.name }}</strong><br>
+            {{ r.location }}<br>
+            ⭐ Rating: {{ r.rating }} | 💲Price: {{ r.price }}<br><br>
+            <a href="{{ r.url }}" target="_blank">Yelp Link</a>
+          </div>
         {% endfor %}
-    </ul>
-  {% else %}
-    <p>No PrepNGo meals saved yet.</p>
-  {% endif %}
+      </div>
+    {% else %}
+      <p>No FoodiesRN recommendations yet.</p>
+    {% endif %}
+  </div>
+</div>
 
+<!-- PrepNGo Section -->
+<div id="prep" class="tab-content" style="display: none;">
+  <div class="card-section">
+    <div class="section-header">
+      <h3>🥗 PrepNGo Meals</h3>
+      <form method="POST" action="{{ url_for('clear_prepngo') }}">
+        <button type="submit">Clear All</button>
+      </form>
+    </div>
 
+    {% if prepngo_results %}
+      <div class="card-container">
+        {% for m in prepngo_results %}
+          <div class="card">
+            <strong>{{ m[0] }}</strong><br>
+            💰 ${{ "%.2f"|format(m[1]) }}<br><br>
+            {{ m[2] }}<br><br>
+            <a href="{{ m[3] }}" target="_blank">View Recipe</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No PrepNGo meals saved yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
 {% endblock %}
