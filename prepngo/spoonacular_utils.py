@@ -1,7 +1,7 @@
 import requests
 import os
 
-API_KEY = os.getenv("SPOONACULAR_API_KEY")  # From your .env file
+API_KEY = os.getenv("SPOON_API_KEY")  # From your .env file
 
 def get_meal_plan(budget, servings, diets):
     max_price_per_meal = budget / servings
