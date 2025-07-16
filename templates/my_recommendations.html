@@ -24,6 +24,8 @@
       <div class="card-container">
         {% for r in foodiesrn_results %}
           <div class="card">
+          <img src="{{ r.image_url }}" alt="Restaurant Image" class="card-img"
+          onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
             <strong>{{ r.name }}</strong><br>
             {{ r.location }}<br>
             ⭐ Rating: {{ r.rating }} | 💲Price: {{ r.price }}<br><br>

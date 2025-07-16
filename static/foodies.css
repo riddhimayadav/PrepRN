@@ -88,6 +88,8 @@ button:hover {
   padding: 1.2rem 1.5rem;
   margin-bottom: 1.5rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 260px;
+  flex-shrink: 0;
 }
 
 .recommendation:hover {
@@ -119,14 +121,37 @@ button:hover {
 
 .recommendation-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 0 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+  margin: 0 auto;
 }
 
-.recommendation-section,
-.recommendation-wrapper {
+
+.recommendation-section {
   max-width: 600px;
   margin: 0 auto;
 }
+
+.card-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .recommendation-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .recommendation {
+    width: 90%;
+    max-width: 400px;
+  }
+}
+
+

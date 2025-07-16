@@ -60,10 +60,13 @@
 </script>
 
 {% if results %}
+<h3 id="recommendations">Top Recommendations:</h3>
 <div class="recommendation-wrapper">
-  <h3 id="recommendations">Top Recommendations:</h3>
   {% for r in results %}
     <div class="recommendation">
+      <img src="{{ r.image_url }}" alt="Restaurant Image"
+         class="card-img"
+         onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
       <h4>{{ r.name }} – {{ r.location }}</h4>
       <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
       <p>{{ r.blurb }}</p>

@@ -102,7 +102,8 @@ def search_yelp(user_input):
                 "location": ", ".join(
                     biz["location"].get("display_address", [])
                 ),
-                "url": biz["url"]
+                "url": biz["url"],
+                "image_url": biz.get("image_url", "")
             })
 
         # this will eventually be sent to google genai after final selection
@@ -183,8 +184,8 @@ def save_to_db(results, user_id):
                 connection.execute(
                     db.text(f"""
                         INSERT INTO {TABLE_RN} 
-                        (name, location, price, rating, url, user_location, cuisine, vibe, user_id)
-                        VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id)
+                        (name, location, price, rating, url, user_location, cuisine, vibe, user_id, image_url)
+                        VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id, :image_url)
                     """),
                     r
                 )
@@ -195,7 +196,7 @@ def view_saved_recommendations(user_id):
     with engine.connect() as connection:
         results = connection.execute(
             db.text(f"""
-                SELECT name, location, rating, price, url 
+                SELECT name, location, rating, price, url, image_url
                 FROM {TABLE_RN} 
                 WHERE user_id = :uid
             """),
@@ -241,6 +242,7 @@ def run_restaurant_search(user_input, user_id):
             biz["cuisine"] = user_input["cuisine"]
             biz["vibe"] = user_input["vibe"]
             biz["user_id"] = user_id
+            biz["image_url"] = biz.get("image_url", "")
 
         save_to_db(top_recs, user_id)
         return top_recs
