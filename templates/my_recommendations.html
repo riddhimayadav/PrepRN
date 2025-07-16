@@ -7,15 +7,14 @@
 
 <!-- Tabs -->
 <div class="tab-buttons">
-  <button class="tab-button active" onclick="showTab('foodies')">🍽️ FoodiesRN</button>
-  <button class="tab-button" onclick="showTab('prep')">🥗 PrepNGo</button>
+  <button class="tab-button active" onclick="showTab('foodies')">🍽️ Restaurants</button>
+  <button class="tab-button" onclick="showTab('prep')">🥗 Meals</button>
 </div>
 
 <!-- FoodiesRN Section -->
 <div id="foodies" class="tab-content">
   <div class="card-section">
     <div class="section-header">
-      <h3>🍽️ FoodiesRN Picks</h3>
       <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
         <button type="submit">Clear All</button>
       </form>
@@ -33,7 +32,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <p>No FoodiesRN recommendations yet.</p>
+      <p>No restaurants saved yet.</p>
     {% endif %}
   </div>
 </div>
@@ -42,7 +41,6 @@
 <div id="prep" class="tab-content" style="display: none;">
   <div class="card-section">
     <div class="section-header">
-      <h3>🥗 PrepNGo Meals</h3>
       <form method="POST" action="{{ url_for('clear_prepngo') }}">
         <button type="submit">Clear All</button>
       </form>
@@ -60,7 +58,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <p>No PrepNGo meals saved yet.</p>
+      <p>No meals saved yet.</p>
     {% endif %}
   </div>
 </div>
