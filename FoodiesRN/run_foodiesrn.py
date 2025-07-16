@@ -7,6 +7,7 @@ import sqlalchemy as db
 from sqlalchemy import inspect
 from dotenv import load_dotenv
 from genai_utils import get_genai_model
+import time
 
 load_dotenv()
 
@@ -120,12 +121,9 @@ def generate_blurbs(businesses, user_input):
     model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
 
     prompt = (
-        "Write a short, fun, Gen Z-style blurb for each of the following restaurants. "
-        "Keep each blurb to 2–3 sentences max. Make each blurb exciting and positive. "
+        "Write a short, fun & positive, Gen Z-style blurb for each restaurant (2-3 sentences). "
         "Separate each restaurant clearly using numbered format (1., 2., 3.) and just write the blurb, don't include restaurant name.\n\n"
-        "Also, based on your knowledge, what do people typically say about "
-        f"the particular restuarant in {user_input['location']}?"
-        "Only include positive traits, and explicitly write 'people are saying' add in what pros."
+        "Also, based on your knowledge, explicitly write 'people are saying' add in what pros for restaurant."
         "Add this one extra sentence to each blurb, don't create separate section. No emojis."
     )
 
@@ -222,7 +220,9 @@ def clear_saved_recommendations(user_id):
 
 def run_restaurant_search(user_input, user_id):
     print("\n🔍 Generating your personalized recommendations...\n")
+    start = time.time()
     results = search_yelp(user_input)
+    print(f"[TIMER] Yelp API took {time.time() - start:.2f} seconds")
 
     if results:
         filtered_results = [r for r in results if r["rating"] > 3.5]
@@ -231,7 +231,9 @@ def run_restaurant_search(user_input, user_id):
         num_recs = min(3, len(filtered_results))
         top_recs = random.sample(filtered_results, k=num_recs)
 
+        start = time.time()
         blurbs = generate_blurbs(top_recs, user_input)
+        print(f"[TIMER] GenAI API took {time.time() - start:.2f} seconds")
 
         for biz, blurb in zip(top_recs, blurbs):
             biz["blurb"] = blurb

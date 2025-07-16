@@ -5,7 +5,7 @@
 <div class="eatout-wrapper">
   <h2>Find Your Next Spot</h2>
 
-  <form method="POST" class="eatout-form">
+  <form method="POST" class="eatout-form" onsubmit="showLoading()">
     <div class="input-group">
       <label><i class="fas fa-map-marker-alt"></i> Location:</label>
       <input name="location" placeholder="(e.g., Austin, TX)" required>
@@ -48,7 +48,16 @@
 
     <button type="submit">Continue</button>
   </form>
+  <div id="loading-msg" style="display:none; text-align:center; margin-top: 1em;">
+  <p>🔍 Generating your personalized recommendations...</p>
 </div>
+</div>
+
+<script>
+  function showLoading() {
+    document.getElementById("loading-msg").style.display = "block";
+  }
+</script>
 
 {% if results %}
 <div class="recommendation-wrapper">
