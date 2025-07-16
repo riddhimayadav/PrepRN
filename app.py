@@ -147,10 +147,8 @@ def prep():
             return redirect(url_for("prep"))
 
         else:
-            # Call your prepngo.py main function
-            results = run_prepngo_meals(user_input)
-            print("DEBUG: run_prepngo_meals output:", results)
-            # Store in session or pass to next page
+            results = get_prepngo_meals(user_input, session["user_id"])  # 💡 this uses your helper
+            save_prepngo_results(results, user_input, session["user_id"])
             session["prep_results"] = results
 
     return render_template("prep.html", results=results)
