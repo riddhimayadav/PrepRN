@@ -22,6 +22,27 @@ engine = db.create_engine("sqlite:///preprn.db")
 TABLE_RN = "foodiesrn_recommendations" # Table name for storing recommendations
 
 
+def create_foodiesrn_table():
+    """Create the foodiesrn_recommendations table if it doesn't exist"""
+    with engine.connect() as connection:
+        connection.execute(db.text(f"""
+            CREATE TABLE IF NOT EXISTS {TABLE_RN} (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                location TEXT,
+                price TEXT,
+                rating REAL,
+                url TEXT,
+                user_location TEXT,
+                cuisine TEXT,
+                vibe TEXT,
+                user_id INTEGER,
+                image_url TEXT
+            )
+        """))
+        connection.commit()
+
+
 # Prompt user repeatedly until they enter a valid input
 def get_valid_input(prompt, valid_options):
     while True:
@@ -163,6 +184,7 @@ def generate_blurbs(businesses, user_input):
 
 # Clear all saved restaurant recommendations in the DB
 def clear_rec_table():
+    create_foodiesrn_table()
     with engine.connect() as connection:
         connection.execute(db.text(f"DELETE FROM {TABLE_RN}"))
         connection.commit()
@@ -170,6 +192,7 @@ def clear_rec_table():
 
 # Save new results to the DB only if they don’t already exist
 def save_to_db(results, user_id):
+    create_foodiesrn_table()
     with engine.connect() as connection:
         for r in results:
             exists = connection.execute(
@@ -194,6 +217,7 @@ def save_to_db(results, user_id):
 
 # Retrieve previously saved recommendations from the DB
 def view_saved_recommendations(user_id):
+    create_foodiesrn_table()
     with engine.connect() as connection:
         results = connection.execute(
             db.text(f"""
@@ -212,6 +236,7 @@ def view_saved_recommendations(user_id):
 
 # Remove all saved recommendations for a specific user
 def clear_saved_recommendations(user_id):
+    create_foodiesrn_table()
     with engine.connect() as connection:
         connection.execute(
             db.text(f"DELETE FROM {TABLE_RN} WHERE user_id = :uid"),

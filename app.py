@@ -9,6 +9,7 @@ from prepngo.PrepnGo import main as run_prepngo_meals
 from shared.prepngo_helpers import get_prepngo_meals, save_prepngo_results, get_saved_prepngo, clear_saved_prepngo
 from dotenv import load_dotenv
 import time
+from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 
 
 # Load environment variables
@@ -26,6 +27,7 @@ params = {
 
 # Create user table if it doesn't already exist
 create_user_table()
+create_foodiesrn_table()
 
 
 # Home route redirects to login page
