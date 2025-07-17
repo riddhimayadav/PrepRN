@@ -1,10 +1,18 @@
 # Import SQLAlchemy for database interaction
 import sqlalchemy as db
 from sqlalchemy import inspect
+import os
 
+prod_db_path = "/home/preprn/PrepRN/preprn.db"
+local_db_path = os.path.join(os.path.dirname(__file__), "..", "preprn.db")
+
+if os.path.exists(prod_db_path):
+    db_path = prod_db_path
+else:
+    db_path = os.path.abspath(local_db_path)
 
 # Create a SQLite engine using 'preprn.db'
-engine = db.create_engine("sqlite:///preprn.db")
+engine = db.create_engine(f"sqlite:///{db_path}")
 inspector = inspect(engine)
 
 
