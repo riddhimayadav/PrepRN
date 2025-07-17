@@ -21,6 +21,23 @@ print("GENAI_KEY in Flask:", GENAI_KEY)
 engine = db.create_engine("sqlite:///preprn.db")
 TABLE_RN = "foodiesrn_recommendations" # Table name for storing recommendations
 
+with engine.connect() as conn:
+    conn.execute(db.text(f"""
+        CREATE TABLE IF NOT EXISTS {TABLE_RN} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            location TEXT,
+            price TEXT,
+            rating REAL,
+            url TEXT,
+            image_url TEXT,
+            user_location TEXT,
+            cuisine TEXT,
+            vibe TEXT,
+            user_id INTEGER
+        )
+    """))
+    conn.commit()
 
 # Prompt user repeatedly until they enter a valid input
 def get_valid_input(prompt, valid_options):
