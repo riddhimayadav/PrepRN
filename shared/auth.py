@@ -4,7 +4,7 @@ from sqlalchemy import inspect
 
 
 # Create a SQLite engine using 'preprn.db'
-engine = db.create_engine("sqlite:////home/preprn/PrepRN/preprn.db")
+engine = db.create_engine("sqlite:///preprn.db")
 inspector = inspect(engine)
 
 
