@@ -1,5 +1,6 @@
 # Main Flask application for PrepRN
 
+import git
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from shared.auth import create_user_table, get_user_id
 from FoodiesRN.run_foodiesrn import *
@@ -26,6 +27,18 @@ params = {
 
 # Create user table if it doesn't already exist
 create_user_table()
+
+
+# For auto deployment
+@app.route("/update_server", methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        repo = git.Repo('/home/preprn/PrepRN')
+        origin = repo.remotes.origin
+        origin.pull()
+        return 'Updated PythonAnywhere successfully', 200
+    else:
+        return 'Wrong event type', 400
 
 
 # Home route redirects to login page
