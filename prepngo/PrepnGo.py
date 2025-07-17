@@ -4,24 +4,16 @@
 # Uses Gemini API to summarize recipes
 # Saves to SQLite DB
 import os
-import google.generativeai as genai
+from typing import List, Dict
 from prepngo.spoonacular_utils import get_random_meal_plan
-from genai_utils import get_summary
-import requests
-from typing import List
-from .database_functions import (
-    init_db,
-    save_request,
-    save_meals,
-    save_feedback,
-    save_local_stores
-)
-from genai_utils import get_genai_model
+from genai_utils import get_summary, get_genai_model
+from google.api_core.exceptions import ResourceExhausted
 
 # Your AI Studio API Key
 
 SPOON_API_KEY = os.getenv('SPOON_API_KEY')
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+model = get_genai_model(GOOGLE_API_KEY, model_name="gemini-1.5-flash")
 
 if not SPOON_API_KEY:
     print(" ERROR: SPOON_API_KEY not set. Export your Spoonacular key first.")
@@ -32,10 +24,25 @@ if not GOOGLE_API_KEY:
     print('export GOOGLE_API_KEY="YOUR_KEY_HERE"')
     exit(1)
 
-# Initialize Gemini
-model = get_genai_model(GOOGLE_API_KEY, model_name="gemini-1.5-flash")
-DB_PATH = 'preprn.db'
-
+def _generate_store_suggestions(city: str, state: str, budget: float) -> str:
+    prompt = (
+        f"I'm planning to grocery shop in {city}, {state} with a budget of ${budget:.2f}. "
+        "Please suggest 3 local grocery stores or supermarket chains in that city, each with a plausible price range "
+        "(low–high) and a one‑line description. "
+        "Format exactly like:\n\n"
+        "- Store Name (Price Range: $low–$high): Description\n"
+    )
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip() if response and hasattr(response, "text") else ""
+    except ResourceExhausted as e:
+        print("⚠️ Gemini quota exceeded when generating store suggestions:", e)
+        return "🛒 Store recommendations are temporarily unavailable due to quota limits. Please try again later."
+    except Exception as e:
+        print("⚠️ Error generating store suggestions:", e)
+        return "🛒 Could not generate store recommendations at this time."
+    
+    
 def call_spoonacular(budget, diets):
     # Fetch 3 recipes under budget matching diets from Spoonacular.
     url = 'https://api.spoonacular.com/recipes/random'
@@ -94,15 +101,36 @@ def main(user_input: dict) -> list:
     budget = float(user_input["budget"])
     servings = int(user_input["servings"])
     diets = user_input.get('diets', [])
-    if isinstance(diets, str):
-        diets = [diets]
+    meal_type = user_input.get("meal_type", "")
+    # if isinstance(diets, str):
+    #     diets = [diets]
     # user_id = user_input.get('user_id')
 
+    # normalize to list of lowercase tags
+    tags = []
+    for d in diets:
+        if d:
+            tags.append(d.strip().lower())
+    if meal_type:
+        tags.append(meal_type.strip().lower())
+
+    loc = user_input.get("location", "")
+    if "," in loc:
+        city, state = (s.strip() for s in loc.split(",", 1))
+    else:
+        city, state = loc, ""
+    
     # Get meals from Spoonacular API
-    meals = get_random_meal_plan(budget, servings, diets)
+    meals = get_random_meal_plan(budget, servings, tags)
+
+    # Get stores from Gemini API
+    stores = _generate_store_suggestions(city, state, budget)
 
     # Add Gemini AI summaries if needed
     for meal in meals:
         meal['summary'] = get_summary(meal['title'])
 
-    return meals
+    return {
+        "meals": meals,
+        "stores": stores,
+    }

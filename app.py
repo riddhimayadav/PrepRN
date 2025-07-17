@@ -8,6 +8,7 @@ from shared.auth import login
 from prepngo.PrepnGo import main as run_prepngo_meals
 from shared.prepngo_helpers import get_prepngo_meals, save_prepngo_results, get_saved_prepngo, clear_saved_prepngo
 from dotenv import load_dotenv
+import time
 
 
 # Load environment variables
@@ -142,30 +143,36 @@ def foodies():
 # PrepnGo route: generate meal plan based on input
 @app.route("/prep", methods=["GET", "POST"])
 def prep():
-    print("DEBUG /prep route called, method:", request.method)
     if "user_id" not in session:
         return redirect(url_for("login_view"))
 
-    results = None
+    #drop any previous results
+    if request.method == "GET":
+        session.pop("prep_results", None)
+        results = None
 
-    if request.method == "POST":
+    #generate & save new results
+    else:
         user_input = {
             "location": request.form.get("location"),
-            "budget": request.form.get("budget"),
+            "budget":   request.form.get("budget"),
             "servings": request.form.get("servings"),
-            "diets": request.form.getlist("diet"),  # checkbox list
+            "diets":    request.form.getlist("diet"),
+            "meal_type": request.form.get("meal_type", "").strip()
         }
 
-        if not all([user_input["location"], user_input["budget"], user_input["servings"]]):
+        if not (user_input["location"] and user_input["budget"] and user_input["servings"]):
             flash("Please fill out all fields.")
             return redirect(url_for("prep"))
 
-        else:
-            results = get_prepngo_meals(user_input, session["user_id"])  # 💡 this uses your helper
-            save_prepngo_results(results, user_input, session["user_id"])
-            session["prep_results"] = results
+        start = time.time()
+        results = get_prepngo_meals(user_input, session["user_id"])
+        # measure end‑to‑end
+        results["duration"] = f"{(time.time() - start):.2f}"
 
-    return render_template("prep.html", results=results)
+        save_prepngo_results(results["meals"], user_input, session["user_id"])
+        session["prep_results"] = results
+    return render_template("prep.html", results=session.get("prep_results"))
 
 
 # Display the results of the PrepnGo meal plan

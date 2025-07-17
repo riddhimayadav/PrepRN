@@ -3,20 +3,29 @@
 <head>
   <title>PrepRN</title>
 
-  <!-- Import Google Fonts (Segoe UI) -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
- 
-  <!-- Link to custom site-wide stylesheet -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='layout.css') }}">
- 
-  <!-- Import Font icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Global site font -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap"
+  >
+
+  <!-- Site‑wide styles -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='layout.css') }}"
+  >
+
+  {% block head %}{% endblock %}
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  >
 </head>
 <body>
-
-  <!-- Show navbar only if the user is logged in (session contains username) -->
   {% if session.username %}
-  <nav>
+    <nav>
     <div class="nav-left">
       <span class="logo">PrepRN</span>
     </div>
@@ -29,7 +38,7 @@
       <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i></a>
     </div>
   </nav>
-  <hr>
+    <hr>
   {% endif %}
 
   {% block content %}{% endblock %}

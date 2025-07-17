@@ -1,87 +1,149 @@
 {% extends "layout.html" %}
 
+{% block head %}
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='prep.css') }}"
+  >
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  >
+{% endblock %}
+
 {% block content %}
-<!-- Link to Eat In stylesheet -->
-<link rel="stylesheet" href="{{ url_for('static', filename='prep.css') }}">
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
 <main>
-  <h2>Eat In</h2>
+  <div class="eatin-wrapper">
+    <h2>Find Your Next Favorite Recipe</h2>
 
-  <!-- Form to collect user's meal planning input -->
-  <form method="POST" action="{{ url_for('prep') }}">
+    <form
+      id="eat-in-form"
+      class="eatin-form"
+      method="POST"
+      action="{{ url_for('prep') }}"
+      onsubmit="return showLoading(event)"
+    >
+      <!-- Location -->
+      <div class="input-group">
+        <label><i class="fas fa-map-marker-alt"></i> Location:</label>
+        <input
+          type="text"
+          name="location"
+          placeholder="e.g. Austin, TX"
+          required
+        >
+      </div>
 
-    <!-- Location input -->
-    <label>
-      Location: <br>
-      <input type="text" name="location" placeholder="(e.g. Austin, TX)">
-    </label>
-    <br><br>
+      <!-- Budget -->
+      <div class="input-group">
+        <label><i class="fas fa-wallet"></i> Budget:</label>
+        <input
+          type="number"
+          step="0.01"
+          name="budget"
+          placeholder="$0.00"
+          required
+        >
+      </div>
 
-    <!-- Budget input -->
-    <label>
-      Budget: <br>
-      <input type="number" step="0.01" name="budget" placeholder="($.$$)">
-    </label>
-    <br><br>
+      <!-- Servings -->
+      <div class="input-group">
+        <label><i class="fas fa-users"></i> Servings:</label>
+        <input
+          type="number"
+          name="servings"
+          min="1"
+          placeholder="e.g. 2"
+          required
+        >
+      </div>
 
-    <!-- Dietary restrictions checkboxes -->
-    <fieldset>
-      <legend>Dietary Restrictions:</legend>
-      <label><input type="checkbox" name="diet" value="vegetarian"> Vegetarian</label><br>
-      <label><input type="checkbox" name="diet" value="vegan"> Vegan</label><br>
-      <label><input type="checkbox" name="diet" value="paleo"> Paleo</label><br>
-      <label><input type="checkbox" name="diet" value="gluten free"> Gluten-free</label><br>
-      <label><input type="checkbox" name="diet" value="lactose free"> Lactose-free</label><br>
-      <label><input type="checkbox" name="diet" value="nut free"> Nut-free</label><br>
-      <label><input type="checkbox" name="diet" value="halal"> Halal</label><br>
-      <label><input type="checkbox" name="diet" value="kosher"> Kosher</label><br>
-      <label><input type="checkbox" name="diet" value="keto"> Keto</label><br>
-      <label><input type="checkbox" name="diet" value="pescatarian"> Pescatarian</label><br>
-      <label><input type="checkbox" name="diet" value="low carb"> Low Carb</label><br>
-      <label><input type="checkbox" name="diet" value="low sugar"> Low Sugar</label><br>
-      <label><input type="checkbox" name="diet" value="other"> Other</label>
-    </fieldset>
-    <br>
+      <!-- Meal Type -->
+      <div class="input-group">
+        <label><i class="fas fa-utensils"></i> Meal Type:</label>
+        <select name="meal_type">
+          <option value="">Any</option>
+          <option>Breakfast</option>
+          <option>Lunch</option>
+          <option>Dinner</option>
+          <option>Snack</option>
+          <option>Dessert</option>
+          <option>Smoothie</option>
+          <option>Salad</option>
+          <option>Soup</option>
+          <option>Sandwich</option>
+        </select>
+      </div>
 
-    <!-- Servings input -->
-    <label>
-      How many people are you cooking for? <br>
-      <input type="number" name="servings" min="1" placeholder="(e.g. 2)">
-    </label>
-    <br><br>
+      <!-- Dietary Restrictions -->
+      <fieldset>
+        <legend><i class="fas fa-apple-alt"></i> Dietary Restrictions (Skip if none):</legend>
+        {% for d in [
+          'vegan','vegetarian','pescetarian','gluten free',
+          'grain free','dairy free','high protein','kosher',
+          'whole 30','low sodium','low carb','paleo',
+          'ketogenic','fodmap','primal'
+        ] %}
+          <label>
+            <input
+              type="checkbox"
+              name="diet"
+              value="{{ d }}"
+            > {{ d|title }}
+          </label>
+        {% endfor %}
+      </fieldset>
 
-    <!-- Submit button to run the meal planner -->
-    <button type="submit">Continue</button>
-  </form>
+      <!-- Submit -->
+      <button type="submit">Continue</button>
+    </form>
 
-  <!-- If results exist, display the generated meal plan -->
-  {% if results %}
-    <hr>
-    <h3>🥗 Your Meal Plan:</h3>
-    <ul>
-      {% for m in results %}
-        <li style="margin-bottom: 1em;">
-          <strong>{{ m['title'] }}</strong> – ${{ "%.2f"|format(m['price']) }}<br>
-          {{ m['summary'] }}<br>
-          <a href="{{ m['source_url'] }}" target="_blank">View Recipe</a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+    <!-- Loading message -->
+    <div id="loading-msg">
+      <p>⏳ Generating your meal plan…</p>
+    </div>
 
-  <!-- Auto-scroll to the results if available -->
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const resultsExist = {{ 'true' if results else 'false' }};
-      if (resultsExist) {
-        const recSection = document.getElementById('recommendations');
-        if (recSection) {
-          recSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    });
-  </script>
+    {% if results %}
+      <div id="recommendations">
+        <h3>🥗 Your Meal Plan</h3>
+        <ul>
+          {% for m in results['meals'] %}
+            <li>
+              <strong>{{ m['title'] }}</strong> —
+              ${{ "%.2f"|format(m['price']) }}<br>
+              {{ m['summary'] }}<br>
+              <a href="{{ m['source_url'] }}" target="_blank">View Recipe</a>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <h3>🛒 Where to Shop</h3>
+        <ul class="store-list">
+          {% for line in results['stores'].split('\n') %}
+            {% set clean = line.lstrip('- ') %}
+            {% if clean %}
+              <li>{{ clean }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+  </div>
 </main>
+
+<script>
+  function showLoading(e) {
+    e.preventDefault();
+    document.getElementById("loading-msg").style.display = "block";
+    document.getElementById("eat-in-form").style.opacity = "0.5";
+    setTimeout(() => e.target.submit(), 100);
+    return false;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const rec = document.getElementById("recommendations");
+    if (rec) rec.scrollIntoView({ behavior: "smooth" });
+  });
+</script>
 {% endblock %}

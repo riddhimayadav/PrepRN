@@ -13,7 +13,7 @@ def get_prepngo_meals(user_input, user_id):
 # Save meal results and associated request data into the database
 def save_prepngo_results(meals, user_input, user_id):
     conn = init_db('preprn.db')
-    req_id = save_request(conn, user_id, user_input['budget'], user_input['servings'], user_input['diets'])
+    req_id = save_request(conn, user_id, float(user_input['budget']), int(user_input['servings']), user_input.get('diets', []))
     save_meals(conn, req_id, meals)
     conn.close()
 
