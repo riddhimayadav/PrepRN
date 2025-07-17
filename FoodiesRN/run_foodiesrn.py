@@ -118,28 +118,30 @@ def generate_blurbs(businesses, user_input):
     model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
 
     prompt = (
-        "Write a short, fun & positive, Gen Z-style blurb for each restaurant (2-3 sentences). "
-        "Separate each restaurant clearly using numbered format (1., 2., 3.) and just write the blurb, don't include restaurant name.\n\n"
-        "Also, based on your knowledge, explicitly write 'people are saying' add in what pros for restaurant."
-        "Add this one extra sentence to each blurb, don't create separate section. No emojis."
+        "Write short, Gen Z-style blurbs (2 sentences) numbered (1., 2., 3.). "
+        "No restaurant names. No emojis. Include 'people are saying' with your positive opnions.\n\n"
     )
 
     for i, biz in enumerate(businesses, 1):
         prompt += (
             f"{i}.\n"
             f"Name: {biz['name']}\n"
-            f"Cuisine: {user_input['cuisine']}\n"
-            f"Price: {biz['price']}\n"
             f"Location: {biz['location']}\n"
             f"Vibe: {user_input['vibe']}\n\n"
         )
 
-    response = model.generate_content(prompt)
+    response_chunks = model.generate_content(prompt, stream=True)
 
-    if response is None or not hasattr(response, "text") or not response.text.strip():
+    full_text = ""
+    for chunk in response_chunks:
+        if hasattr(chunk, "text"):
+            full_text += chunk.text
+
+    if not full_text.strip():
         return ["No blurb available."] * len(businesses)
 
-    raw_blurbs = response.text.strip().split("\n\n")
+
+    raw_blurbs = full_text.strip().split("\n\n")
     blurbs = []
 
     for blurb in raw_blurbs:

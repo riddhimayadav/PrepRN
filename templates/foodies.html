@@ -53,6 +53,11 @@
     <!-- Submit button to start restaurant search -->
     <button type="submit">Continue</button>
   </form>
+  {% if error_msg %}
+  <div class="error-msg" style="text-align: center; color: red; margin-top: 1em;">
+    {{ error_msg }}
+  </div>
+  {% endif %}
   <!-- Loading message that appears after clicking "Continue" -->
   <div id="loading-msg" style="display:none; text-align:center; margin-top: 1em;">
   <p>🔍 Generating your personalized recommendations...</p>

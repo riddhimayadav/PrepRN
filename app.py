@@ -131,13 +131,17 @@ def foodies():
         }
 
         if not all(user_input.values()):
-            print("Please fill out all fields.")
-            return render_template("foodies.html", results=None)
+            return render_template("foodies.html", results=None, error_msg="Please fill out all fields.")
 
-        results = run_restaurant_search(user_input, session["user_id"])
-        return render_template("foodies.html", results=results)
+        try:
+            results = run_restaurant_search(user_input, session["user_id"])
+            return render_template("foodies.html", results=results, error_msg=None)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return render_template("foodies.html", results=None, error_msg="Something went wrong. Please try again.")
 
-    return render_template("foodies.html", results=None)
+    return render_template("foodies.html", results=None, error_msg=None)
 
 
 # PrepnGo route: generate meal plan based on input
