@@ -3,6 +3,7 @@
 {% block content %}
   <h2>🥗 Your Meal Plan Results</h2>
 
+  <!-- Check if results were passed -->
   {% if results %}
     <ul>
       {% for meal in results %}
@@ -19,5 +20,6 @@
     <p>No meal plans found for your input.</p>
   {% endif %}
 
+  <!-- Button to go back to the meal prep form -->
   <a href="{{ url_for('prep') }}">Back to Meal Prep Form</a>
 {% endblock %}

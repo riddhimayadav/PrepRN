@@ -1,9 +1,14 @@
+# Import SQLAlchemy for database interaction
 import sqlalchemy as db
 from sqlalchemy import inspect
 
+
+# Create a SQLite engine using 'preprn.db'
 engine = db.create_engine("sqlite:///preprn.db")
 inspector = inspect(engine)
 
+
+# Function to create a users table if it doesn't already exist
 def create_user_table():
     with engine.connect() as connection:
         connection.execute(db.text("""
@@ -15,6 +20,8 @@ def create_user_table():
         """))
         connection.commit()
 
+
+# Function to register a new user
 def signup(username, password):
     if not username.strip() or not password.strip():
         return None
@@ -36,6 +43,7 @@ def signup(username, password):
             return username
 
 
+# Function to log in an existing user
 def login(username, password):
     with engine.connect() as connection:
         result = connection.execute(
@@ -49,6 +57,7 @@ def login(username, password):
         return None
 
 
+# CLI function to prompt user to either login or sign up (used for terminal version)
 def login_or_signup():
     while True:
         choice = input("Do you want to login or sign up? (login/signup): ").strip().lower()
@@ -59,6 +68,8 @@ def login_or_signup():
         else:
             print("Invalid input. Please type 'login' or 'signup'.\n")
 
+
+# Function to retrieve a user's ID based on their username
 def get_user_id(username):
     with engine.connect() as connection:
         result = connection.execute(

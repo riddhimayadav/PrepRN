@@ -1,3 +1,5 @@
+# From CLI, not needed for Flask app
+
 from FoodiesRN.run_foodiesrn import run_food_module
 from shared.auth import create_user_table, login_or_signup, get_user_id
 

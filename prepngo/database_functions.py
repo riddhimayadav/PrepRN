@@ -5,6 +5,7 @@ def init_db(path: str) -> sqlite3.Connection:
     """Initialize the SQLite database and tables if they don't exist."""
     conn = sqlite3.connect(path)
     cur = conn.cursor()
+    # Table to track user requests 
     cur.execute('''
         CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,6 +15,7 @@ def init_db(path: str) -> sqlite3.Connection:
             diets TEXT
         )
     ''')
+    # Table to store meals generated from a request
     cur.execute('''
         CREATE TABLE IF NOT EXISTS meals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,6 +28,7 @@ def init_db(path: str) -> sqlite3.Connection:
             FOREIGN KEY(request_id) REFERENCES requests(id)
         )
     ''')
+    # Table to store meals generated from a request
     cur.execute('''
         CREATE TABLE IF NOT EXISTS feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +38,7 @@ def init_db(path: str) -> sqlite3.Connection:
             FOREIGN KEY(request_id) REFERENCES requests(id)
         )
     ''')
+    # Table to store Gemini-generated local store suggestions
     cur.execute('''
         CREATE TABLE IF NOT EXISTS local_stores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +52,8 @@ def init_db(path: str) -> sqlite3.Connection:
     conn.commit()
     return conn
 
+
+# Save a meal request and return the ID of the newly created request row
 def save_request(
     conn: sqlite3.Connection, user_id: int, budget: float, servings: int, diets: List[str]
 ) -> int:
@@ -61,6 +67,8 @@ def save_request(
     conn.commit()
     return cur.lastrowid
 
+
+# Save a batch of meal records linked to a request
 def save_meals(
     conn: sqlite3.Connection, request_id: int, meals: List[Dict[str, Any]]
 ) -> None:
@@ -81,6 +89,8 @@ def save_meals(
         ))
     conn.commit()
 
+
+# Save user feedback for a specific request
 def save_feedback(
     conn: sqlite3.Connection, request_id: int, satisfied: bool, comments: str
 ) -> None:
@@ -92,6 +102,8 @@ def save_feedback(
     )
     conn.commit()
 
+
+# Save Gemini-generated store suggestions for a given request
 def save_local_stores(
     conn: sqlite3.Connection, request_id: int, city: str, state: str, suggestions: str
 ) -> None:
@@ -106,6 +118,8 @@ def save_local_stores(
     )
     conn.commit()
 
+
+# Retrieve all saved meals for a given user
 def get_saved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
     """Retrieve all saved meals for a user, joined with request metadata."""
     cur = conn.cursor()
@@ -118,9 +132,12 @@ def get_saved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
     ''', (user_id,))
     return cur.fetchall()
 
+
+# Delete all meals (and requests) associated with a user
 def clear_meals(conn: sqlite3.Connection, user_id: int) -> None:
     """Delete all meals and related requests for a user."""
     cur = conn.cursor()
+    # Get all request IDs associated with this user
     cur.execute('SELECT id FROM requests WHERE user_id = ?', (user_id,))
     request_ids = [row[0] for row in cur.fetchall()]
 

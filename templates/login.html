@@ -2,18 +2,25 @@
 <html>
 <head>
     <title>Login</title>
+
+    <!-- Link to the login-specific CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+
+    <!-- Import Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
 </head>
 <body>
     <h1>Welcome to PrepRN!</h1>
     <h2>Login</h2>
+
+    <!-- Display error message if login failed -->
     {% if error %}
         <p style="color: red; text-align: center;">{{ error }}</p>
     {% endif %}
 
+    <!-- Login form — POSTs to the same route -->
     <form method="POST">
-        {{ form.hidden_tag() }}
+        {{ form.hidden_tag() }}  <!-- CSRF token -->
         <p>
             {{ form.username.label }}<br>
             {{ form.username(size=32) }}
@@ -24,6 +31,8 @@
         </p>
         <p>{{ form.submit() }}</p>
     </form>
+
+    <!-- Link to the signup page if the user doesn’t have an account -->
     <p>Don't have an account? <a href="{{ url_for('signup_view') }}">Sign up here</a>.</p>
 </body>
 </html>

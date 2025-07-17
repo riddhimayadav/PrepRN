@@ -1,14 +1,19 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<!-- Link to custom dashboard CSS file -->
 <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+
 <div class="dashboard-wrapper">
   <div class="container">
     <h2>Hey {{ username }}, What’s The Plan For Today?</h2>
 
+    <!-- Form to navigate to the FoodiesRN 'Eat Out' feature -->
     <form method="GET" action="{{ url_for('foodies') }}">
         <button type="submit">🍽️ Eat Out</button>
     </form>
 
+    <!-- Form to trigger PrepnGo 'Eat In' meal planner -->
     <form method="POST" action="{{ url_for('prep') }}"> 
         <button type="submit">🥗 Eat In</button> 
     </form>

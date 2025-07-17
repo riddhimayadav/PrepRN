@@ -9,18 +9,20 @@ from dotenv import load_dotenv
 from genai_utils import get_genai_model
 import time
 
-load_dotenv()
 
+# Load environment variables
+load_dotenv()
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
 print("GENAI_KEY in Flask:", GENAI_KEY)
 
 
+# Set up SQLAlchemy database engine
 engine = db.create_engine("sqlite:///preprn.db")
-TABLE_RN = "foodiesrn_recommendations"
+TABLE_RN = "foodiesrn_recommendations" # Table name for storing recommendations
 
 
-# reprompts if not valid input
+# Prompt user repeatedly until they enter a valid input
 def get_valid_input(prompt, valid_options):
     while True:
         user_input = input(prompt).capitalize()
@@ -29,7 +31,7 @@ def get_valid_input(prompt, valid_options):
         print("Invalid input. Please choose from:", ", ".join(valid_options))
 
 
-# getting user input
+# Collect restaurant search preferences from the user via CLI
 def get_user_input():
 
     location = input("\nEnter your city (e.g., Austin, TX): ")
@@ -56,9 +58,8 @@ def get_user_input():
         "vibe": vibe
     }
 
-# in yelp api search, prices are passed as numbers
 
-
+# Yelp uses numbers for price ranges
 price_map = {
     "$": "1",
     "$$": "2",
@@ -67,11 +68,8 @@ price_map = {
 }
 
 
-# yelp api call
-
+# Yelp API call to search for restaurants based on user input
 # https://docs.developer.yelp.com/reference/v3_business_search
-
-
 def search_yelp(user_input):
     headers = {
         "Authorization": f"Bearer {YELP_KEY}"
@@ -115,9 +113,7 @@ def search_yelp(user_input):
         return []
 
 
-# return food blurb for user display
-
-
+# Generate GenAI-powered blurbs for each restaurant
 def generate_blurbs(businesses, user_input):
     model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
 
@@ -156,19 +152,21 @@ def generate_blurbs(businesses, user_input):
         else:
             blurbs.append(blurb.strip())
 
-
+    # Ensure we return the same number of blurbs as restaurants
     while len(blurbs) < len(businesses):
         blurbs.append("No blurb available.")
 
     return blurbs
 
 
+# Clear all saved restaurant recommendations in the DB
 def clear_rec_table():
     with engine.connect() as connection:
         connection.execute(db.text(f"DELETE FROM {TABLE_RN}"))
         connection.commit()
 
 
+# Save new results to the DB only if they don’t already exist
 def save_to_db(results, user_id):
     with engine.connect() as connection:
         for r in results:
@@ -192,6 +190,7 @@ def save_to_db(results, user_id):
         connection.commit()
 
 
+# Retrieve previously saved recommendations from the DB
 def view_saved_recommendations(user_id):
     with engine.connect() as connection:
         results = connection.execute(
@@ -209,6 +208,7 @@ def view_saved_recommendations(user_id):
     return results
 
 
+# Remove all saved recommendations for a specific user
 def clear_saved_recommendations(user_id):
     with engine.connect() as connection:
         connection.execute(
@@ -219,6 +219,7 @@ def clear_saved_recommendations(user_id):
     print("\nAll your saved recommendations have been cleared.")
 
 
+# Main function to run Yelp + GenAI-based restaurant recommendation pipeline
 def run_restaurant_search(user_input, user_id):
     print("\n🔍 Generating your personalized recommendations...\n")
     start = time.time()
@@ -251,7 +252,7 @@ def run_restaurant_search(user_input, user_id):
         return []
 
 
-
+# CLI interface for the FoodiesRN module
 def run_food_module(user_id):
     session_recs = []
 

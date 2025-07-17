@@ -2,22 +2,33 @@
 <html>
 <head>
   <title>PrepRN</title>
+
+  <!-- Import Google Fonts (Segoe UI) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
+ 
+  <!-- Link to custom site-wide stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='layout.css') }}">
+ 
+  <!-- Import Font icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+
+  <!-- Show navbar only if the user is logged in (session contains username) -->
   {% if session.username %}
   <nav>
-  <div class="nav-left">
-    <span class="logo">PrepRN</span>
-  </div>
-  <div class="nav-right">
-    <a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i></a>
-    <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-history"></i></a>
-    <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i></a>
-  </div>
-</nav>
+    <div class="nav-left">
+      <span class="logo">PrepRN</span>
+    </div>
+    <div class="nav-right">
+      <!-- Link to dashboard -->
+      <a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i></a>
+      <!-- Link to saved recommendations page -->
+      <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-history"></i></a>
+      <!-- Link to logout -->
+      <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+  </nav>
   <hr>
   {% endif %}
 

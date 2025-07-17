@@ -1,16 +1,21 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
+<!-- Link to the CSS specific to the FoodiesRN Eat Out page -->
 <link rel="stylesheet" href="{{ url_for('static', filename='foodies.css') }}">
+
 <div class="eatout-wrapper">
   <h2>Find Your Next Spot</h2>
 
+  <!-- Form to collect user's dining preferences -->
   <form method="POST" class="eatout-form" onsubmit="showLoading()">
+    <!-- Location input field -->
     <div class="input-group">
       <label><i class="fas fa-map-marker-alt"></i> Location:</label>
       <input name="location" placeholder="(e.g., Austin, TX)" required>
     </div>
-
+    <!-- Cuisine selection dropdown -->
     <div class="input-group">
       <label><i class="fas fa-utensils"></i> Food Type:</label>
       <select name="cuisine" required>
@@ -25,7 +30,7 @@
         <option>Italian</option>
       </select>
     </div>
-
+    <!-- Price selection dropdown -->
     <div class="input-group">
       <label><i class="fas fa-wallet"></i> Budget:</label>
       <select name="price" required>
@@ -35,7 +40,7 @@
         <option>$$$$</option>
       </select>
     </div>
-
+    <!-- Vibe/mood selection dropdown -->
     <div class="input-group">
       <label><i class="fas fa-heart"></i> Vibe / Mood:</label>
       <select name="vibe" required>
@@ -45,20 +50,23 @@
         <option>Casual</option>
       </select>
     </div>
-
+    <!-- Submit button to start restaurant search -->
     <button type="submit">Continue</button>
   </form>
+  <!-- Loading message that appears after clicking "Continue" -->
   <div id="loading-msg" style="display:none; text-align:center; margin-top: 1em;">
   <p>🔍 Generating your personalized recommendations...</p>
 </div>
 </div>
 
+<!-- Show loading message when form is submitted -->
 <script>
   function showLoading() {
     document.getElementById("loading-msg").style.display = "block";
   }
 </script>
 
+<!-- If results were returned, display them here -->
 {% if results %}
 <h3 id="recommendations">Top Recommendations:</h3>
 <div class="recommendation-wrapper">
@@ -76,7 +84,7 @@
 </div>
 {% endif %}
 
-
+<!-- If results exist, auto-scroll to the recommendations section -->
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     const resultsExist = {{ 'true' if results else 'false' }};
