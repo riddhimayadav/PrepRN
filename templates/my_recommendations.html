@@ -25,13 +25,32 @@
       {% if foodiesrn_results %}
         <div class="card-container">
           {% for r in foodiesrn_results %}
-            <div class="card">
+            <div class="card restaurant-card">
               <img src="{{ r.image_url }}" alt="Restaurant Image" class="card-img"
                 onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
-              <strong>{{ r.name }}</strong><br>
-              {{ r.location }}<br>
-              ⭐ Rating: {{ r.rating }} | 💲Price: {{ r.price }}<br><br>
-              <a href="{{ r.url }}" target="_blank">Yelp Link</a>
+              
+              <div class="card-content">
+                <strong>{{ r.name }}</strong><br>
+                <span class="location"><i class="fas fa-map-marker-alt"></i> {{ r.location }}</span><br>
+                <div class="rating-price-inline">
+                  <span class="rating">⭐ {{ r.rating }}</span>
+                  <span class="price">💲{{ r.price }}</span>
+                </div>
+                
+                <div class="restaurant-actions">
+                  <a href="{{ url_for('restaurant_detail', restaurant_name=r.name, restaurant_location=r.location) }}" 
+                     class="details-btn">
+                    <i class="fas fa-info-circle"></i> Details
+                  </a>
+                  <a href="https://www.google.com/maps/search/?api=1&query={{ (r.name + ' ' + r.location) | urlencode }}" 
+                     target="_blank" class="details-btn">
+                    <i class="fas fa-map-marker-alt"></i> Maps
+                  </a>
+                  <a href="{{ r.url }}" target="_blank" class="details-btn">
+                    <i class="fab fa-yelp"></i> Yelp
+                  </a>
+                </div>
+              </div>
             </div>
           {% endfor %}
         </div>
@@ -54,11 +73,15 @@
       {% if prepngo_results %}
         <div class="card-container">
           {% for m in prepngo_results %}
-            <div class="card">
-              <strong>{{ m[0] }}</strong><br>
-              💰 ${{ "%.2f"|format(m[1]) }}<br><br>
-              {{ m[2] }}<br><br>
-              <a href="{{ m[3] }}" target="_blank">View Recipe</a>
+            <div class="card meal-card">
+              <div class="card-content">
+                <strong>{{ m[0] }}</strong><br>
+                <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
+                <p class="meal-description">{{ m[2] }}</p>
+                <a href="{{ m[3] }}" target="_blank" class="details-btn">
+                  <i class="fas fa-external-link-alt"></i> View Recipe
+                </a>
+              </div>
             </div>
           {% endfor %}
         </div>

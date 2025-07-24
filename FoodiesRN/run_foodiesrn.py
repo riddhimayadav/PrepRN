@@ -221,7 +221,7 @@ def view_saved_recommendations(user_id):
     with engine.connect() as connection:
         results = connection.execute(
             db.text(f"""
-                SELECT name, location, rating, price, url, image_url
+                SELECT name, location, rating, price, url, image_url, cuisine, vibe, user_location
                 FROM {TABLE_RN} 
                 WHERE user_id = :uid
             """),

@@ -39,6 +39,13 @@ h2, h3 {
   width: 100%;
   box-sizing: border-box;
   text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* border: 2px solid #333; */
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .card a {
@@ -48,7 +55,7 @@ h2, h3 {
 }
 
 .card a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .card-section p {
@@ -57,6 +64,26 @@ h2, h3 {
   color: #666;
 }
 
+.card-content strong,
+.card-content .location,
+.card-content .rating-price-inline {
+  display: block;
+  margin-bottom: -0.5em;
+}
+
+.restaurant-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.meal-description {
+  color: #333 !important;
+  text-align: left !important;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
 
 button {
   background-color: #ACB288;
@@ -68,6 +95,7 @@ button {
   cursor: pointer;
   margin-top: 1em;
   transition: background-color 0.3s;
+  margin-bottom: 1em;
 }
 
 button:hover {
@@ -109,3 +137,21 @@ button:hover {
   margin-bottom: 1rem;
 }
 
+/* Make action links black */
+.details-btn {
+  color: #333 !important;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.4em 0.8em;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  margin-top: 1em;
+}
+
+.details-btn:hover {
+  background-color: #ACB288;
+  text-decoration: none;
+  color: #333 !important;
+}

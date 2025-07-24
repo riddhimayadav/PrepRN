@@ -1,0 +1,320 @@
+<style>
+/* Match existing app theme */
+.restaurant-detail-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fafafa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.back-button {
+  width: auto;
+  padding: 0.8em 1.5em;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  border: 2px solid #333;
+  cursor: pointer;
+  background-color: #ffffff;
+  color: #333;
+  transition: background-color 0.3s ease;
+  margin-bottom: 2em;
+  margin-top: 2em;
+  margin-left: 2em;
+}
+
+.back-button:hover {
+  background-color: #d3e3b3;
+}
+
+.restaurant-header {
+  background-color: #ffffff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2em;
+  /* Very narrow on large screens */
+  margin-left: 35rem;
+  margin-right: 35rem;
+}
+
+.restaurant-info {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.restaurant-image img {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #333;
+  margin-top: 1.5em;
+}
+
+.restaurant-details {
+  flex: 1;
+}
+
+.restaurant-details h1 {
+  margin: 0 0 1rem 0;
+  color: black;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.location {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.rating-price-cuisine-vibe {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.rating, .price {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background-color: #ffffff;
+  border: 2px solid #333;
+  font-weight: bold;
+  color: #333;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.yelp-btn, .maps-btn {
+  padding: 0.8em 1.5em;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  border: 2px solid #333;
+  cursor: pointer;
+  background-color: #ffffff;
+  color: #333;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.yelp-btn:hover, .maps-btn:hover {
+  background-color: #d3e3b3;
+  text-decoration: none;
+  color: #333;
+}
+
+.restaurant-description, .additional-info {
+  background-color: #ffffff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2em;
+  /* Very narrow on large screens */
+  margin-left: 35rem;
+  margin-right: 35rem;
+}
+
+.restaurant-description h3, .additional-info h3 {
+  margin: 0 0 1rem 0;
+  color: black;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.restaurant-description p {
+  color: #333;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.info-item strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: black;
+  font-weight: bold;
+}
+
+/* Large screens - keep your narrow layout */
+@media (max-width: 1600px) {
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 25rem;
+    margin-right: 25rem;
+  }
+}
+
+/* Medium-large screens */
+@media (max-width: 1400px) {
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 15rem;
+    margin-right: 15rem;
+  }
+}
+
+/* Medium screens */
+@media (max-width: 1200px) {
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 8rem;
+    margin-right: 8rem;
+  }
+}
+
+/* Smaller screens */
+@media (max-width: 1000px) {
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 4rem;
+    margin-right: 4rem;
+  }
+}
+
+/* Tablet screens */
+@media (max-width: 768px) {
+  .restaurant-detail-wrapper {
+    padding: 1rem;
+  }
+  
+  .back-button {
+    margin-left: 1rem;
+  }
+  
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .restaurant-info {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  
+  .restaurant-image img {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .yelp-btn, .maps-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 480px) {
+  .restaurant-detail-wrapper {
+    padding: 0.5rem;
+  }
+  
+  .back-button {
+    margin-left: 0.5rem;
+  }
+  
+  .restaurant-header,
+  .restaurant-description, 
+  .additional-info {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 1rem;
+  }
+}
+
+/* Google Maps embed styling */
+.restaurant-map {
+  margin-top: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  border: 2px solid #333;
+  max-width: 1200px;
+  width: 50em;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fafafa;
+  margin-bottom: 4em;
+  
+}
+
+.restaurant-map h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.restaurant-map h3 i {
+  color: #dc3545;
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.map-container iframe {
+  display: block;
+  border-radius: 8px;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .restaurant-map {
+    margin: 1.5rem 1rem 0 1rem;
+    padding: 1rem;
+  }
+  
+  .map-container iframe {
+    height: 250px;
+  }
+}
+
+</style>

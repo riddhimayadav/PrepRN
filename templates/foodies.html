@@ -80,13 +80,28 @@
       <img src="{{ r.image_url }}" alt="Restaurant Image"
          class="card-img"
          onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
-      <h4>{{ r.name }} – {{ r.location }}</h4>
-      <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
-      <p>{{ r.blurb }}</p>
-      <a href="{{ r.url }}" target="_blank">View on Yelp</a>
+      
+      <div class="restaurant-content">
+        <h4>{{ r.name }} – {{ r.location }}</h4>
+        <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
+        <p>{{ r.blurb }}</p>
+        
+        <div class="restaurant-actions">
+          <a href="{{ r.detail_url }}" class="detail-btn">
+            <i class="fas fa-info-circle"></i> View Details
+          </a>
+          <a href="{{ r.maps_url }}" target="_blank" class="maps-btn">
+            <i class="fas fa-map-marker-alt"></i> Google Maps
+          </a>
+          <a href="{{ r.url }}" target="_blank" class="yelp-btn">
+            <i class="fab fa-yelp"></i> Yelp
+          </a>
+        </div>
+      </div>
     </div>
   {% endfor %}
 </div>
+
 {% endif %}
 
 <!-- If results exist, auto-scroll to the recommendations section -->
@@ -102,6 +117,4 @@
   });
 </script>
 
-
 {% endblock %}
-

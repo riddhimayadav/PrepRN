@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='restaurant_detail.css') }}">
+
+<div class="restaurant-detail-wrapper">
+  <button onclick="history.back()" class="back-button">
+    <i class="fas fa-arrow-left"></i> Back to Results
+  </button>
+  
+  <div class="restaurant-header">
+    <div class="restaurant-info">
+      <div class="restaurant-image">
+        <img src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}"
+             onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
+      </div>
+      
+      <div class="restaurant-details">
+        <h1>{{ restaurant.name }}</h1>
+        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}</p>
+        <div class="rating-price-cuisine-vibe">
+          <span class="rating"><i class="fas fa-star"></i> {{ restaurant.rating }}</span>
+          <span class="price">{{ restaurant.price }}</span>
+          <span class="price">{{ restaurant.cuisine }}</span>
+          <span class="price">{{ restaurant.vibe }}</span>
+        </div>
+        
+        <div class="action-buttons">
+          <a href="{{ restaurant.url }}" target="_blank" class="yelp-btn">
+            <i class="fab fa-yelp"></i> View on Yelp
+          </a>
+          <a href="https://www.google.com/maps/search/?api=1&query={{ maps_query | urlencode }}" 
+             target="_blank" class="maps-btn">
+            <i class="fas fa-map"></i> Open in Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if restaurant.blurb %}
+  <div class="restaurant-description">
+    <h3><i class="fas fa-info-circle"></i> About This Place</h3>
+    <p>{{ restaurant.blurb }}</p>
+  </div>
+  {% endif %}
+
+  <div class="restaurant-map">
+    <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+    <div class="map-container">
+      <iframe 
+        src="https://maps.google.com/maps?q={{ (restaurant.name + ' ' + restaurant.location) | urlencode }}&output=embed"
+        width="100%" 
+        height="500" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
