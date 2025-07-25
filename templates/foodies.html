@@ -119,6 +119,9 @@
         <!-- <p>{{ r.blurb }}</p> -->
         
         <div class="restaurant-actions">
+          <button class="heart-btn" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+            <i class="far fa-heart"></i>
+          </button>
           <a href="{{ r.detail_url }}" class="detail-btn">
             <i class="fas fa-info-circle"></i> View Details
           </a>
@@ -254,6 +257,35 @@ document.getElementById('locationInput').addEventListener('input', function() {
     this.placeholder = 'Enter address, city, or zip code';
   }
 });
+</script>
+
+<script>
+// Toggle love status for restaurants
+function toggleLove(name, location, button) {
+  fetch('/love_restaurant', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: name,
+      location: location
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.loved) {
+      // Restaurant is now loved - fill the heart
+      button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+    } else {
+      // Restaurant is no longer loved - empty the heart
+      button.innerHTML = '<i class="far fa-heart"></i>';
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling love:', error);
+  });
+}
 </script>
 
 {% endblock %}

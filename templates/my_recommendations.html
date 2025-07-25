@@ -6,21 +6,29 @@
 
   <h2>Your Saved Recommendations</h2>
 
-  <!-- Tabs for toggling between restaurant and meal results -->
-  <div class="tab-buttons">
-    <button class="tab-button active" onclick="showTab('foodies')">🍽️ Restaurants</button>
-    <button class="tab-button" onclick="showTab('prep')">🥗 Meals</button>
-  </div>
+  <!-- Main tabs for toggling between restaurant and meal results -->
+    <div class="main-tab-buttons">
+    <button class="main-tab-button active" onclick="showMainTab('foodies')">🍽️ Restaurants</button>
+    <button class="main-tab-button" onclick="showMainTab('prep')">🥗 Meals</button>
+    </div>
 
   <!-- FoodiesRN saved results section -->
-  <div id="foodies" class="tab-content">
-    <div class="card-section">
-      <div class="section-header">
-        <!-- Button to clear all saved restaurant results -->
-        <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
-          <button type="submit">Clear All</button>
-        </form>
-      </div>
+    <div id="foodies" class="main-tab-content">
+    <!-- Sub-tabs for restaurants -->
+    <div class="sub-tab-buttons">
+        <button class="sub-tab-button active" onclick="showSubTab('foodies', 'search-history')">Search History</button>
+        <button class="sub-tab-button" onclick="showSubTab('foodies', 'loved')">Loved</button>
+    </div>
+
+    <!-- Search History Sub-tab -->
+    <div id="foodies-search-history" class="sub-tab-content">
+        <div class="card-section">
+        <div class="section-header">
+            <!-- Button to clear all saved restaurant results -->
+            <form method="POST" action="{{ url_for('clear_foodiesrn') }}">
+            <button type="submit">Clear All Search History</button>
+            </form>
+        </div>
 
       {% if foodiesrn_results %}
         <div class="card-container">
@@ -33,13 +41,20 @@
                 <strong>{{ r.name }}</strong><br>
                 <span class="location"><i class="fas fa-map-marker-alt"></i> {{ r.location }}</span><br>
                 <div class="rating-price-inline">
-                  <span class="rating">⭐ {{ r.rating }}</span>
-                  <span class="price">💲{{ r.price }}</span>
-                </div>
-                
-                <div class="restaurant-actions">
-                  <a href="{{ url_for('restaurant_detail', restaurant_name=r.name, restaurant_location=r.location) }}" 
-                     class="details-btn">
+                    <span class="rating">⭐ {{ r.rating }}</span>
+                    <span class="price">💲{{ r.price }}</span>
+                    <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+                        {% if r.loved %}
+                        <i class="fas fa-heart" style="color: red;"></i>
+                        {% else %}
+                        <i class="far fa-heart"></i>
+                        {% endif %}
+                    </button>
+                    </div>
+
+                    <div class="restaurant-actions">
+                    <a href="{{ url_for('restaurant_detail', restaurant_name=r.name, restaurant_location=r.location) }}" 
+                        class="details-btn">
                     <i class="fas fa-info-circle"></i> Details
                   </a>
                   <a href="https://www.google.com/maps/search/?api=1&query={{ (r.name + ' ' + r.location) | urlencode }}" 
@@ -60,13 +75,66 @@
     </div>
   </div>
 
+  <!-- Loved Restaurants Sub-tab -->
+  <div id="foodies-loved" class="sub-tab-content" style="display: none;">
+    <div class="card-section">
+      {% if loved_restaurants %}
+        <div class="card-container">
+          {% for r in loved_restaurants %}
+            <div class="card restaurant-card">
+              <img src="{{ r.image_url }}" alt="Restaurant Image" class="card-img"
+                onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
+              
+              <div class="card-content">
+                <strong>{{ r.name }}</strong><br>
+                <span class="location"><i class="fas fa-map-marker-alt"></i> {{ r.location }}</span><br>
+                <div class="rating-price-inline">
+                  <span class="rating">⭐ {{ r.rating }}</span>
+                  <span class="price">💲{{ r.price }}</span>
+                  <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+                    <i class="fas fa-heart" style="color: red;"></i>
+                  </button>
+                </div>
+                
+                <div class="restaurant-actions">
+                  <a href="{{ url_for('restaurant_detail', restaurant_name=r.name, restaurant_location=r.location) }}" 
+                     class="details-btn">
+                    <i class="fas fa-info-circle"></i> Details
+                  </a>
+                  <a href="https://www.google.com/maps/search/?api=1&query={{ (r.name + ' ' + r.location) | urlencode }}" 
+                     target="_blank" class="details-btn">
+                    <i class="fas fa-map-marker-alt"></i> Maps
+                  </a>
+                  <a href="{{ r.url }}" target="_blank" class="details-btn">
+                    <i class="fab fa-yelp"></i> Yelp
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No loved restaurants yet. ❤️ Heart some restaurants to see them here!</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
   <!-- PrepnGo saved results section -->
-  <div id="prep" class="tab-content" style="display: none;">
+<div id="prep" class="main-tab-content" style="display: none;">
+  <!-- Sub-tabs for meals -->
+  <div class="sub-tab-buttons">
+    <button class="sub-tab-button active" onclick="showSubTab('prep', 'search-history')">Search History</button>
+    <button class="sub-tab-button" onclick="showSubTab('prep', 'loved')">Loved</button>
+  </div>
+
+  <!-- Meal Search History Sub-tab -->
+  <div id="prep-search-history" class="sub-tab-content">
     <div class="card-section">
       <div class="section-header">
         <!-- Button to clear all saved PrepnGo results -->
         <form method="POST" action="{{ url_for('clear_prepngo') }}">
-          <button type="submit">Clear All</button>
+          <button type="submit">Clear All Search History</button>
         </form>
       </div>
 
@@ -78,9 +146,14 @@
                 <strong>{{ m[0] }}</strong><br>
                 <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
                 <p class="meal-description">{{ m[2] }}</p>
-                <a href="{{ m[3] }}" target="_blank" class="details-btn">
-                  <i class="fas fa-external-link-alt"></i> View Recipe
-                </a>
+                <div class="meal-actions">
+                  <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                    <i class="far fa-heart"></i>
+                  </button>
+                  <a href="{{ m[3] }}" target="_blank" class="details-btn">
+                    <i class="fas fa-external-link-alt"></i> View Recipe
+                  </a>
+                </div>
               </div>
             </div>
           {% endfor %}
@@ -91,17 +164,93 @@
     </div>
   </div>
 
-  <!-- function to toggle between tabs -->
-  <script>
-    function showTab(tabId) {
-      // Hide all content sections
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      // Show selected tab
-      document.getElementById(tabId).style.display = 'block';
+  <!-- Loved Meals Sub-tab -->
+  <div id="prep-loved" class="sub-tab-content" style="display: none;">
+    <div class="card-section">
+      <p>❤️ Loved meals feature coming soon! We're working on making individual recipes loveable.</p>
+    </div>
+  </div>
+</div>
 
-      // Update button styles to reflect active tab
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+  <!-- Functions to toggle between main tabs and sub-tabs -->
+    <script>
+    function showMainTab(tabId) {
+        // Hide all main tab content sections
+        document.querySelectorAll('.main-tab-content').forEach(el => el.style.display = 'none');
+        // Show selected main tab
+        document.getElementById(tabId).style.display = 'block';
+
+        // Update main tab button styles
+        document.querySelectorAll('.main-tab-button').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
     }
-  </script>
+
+    function showSubTab(mainTab, subTab) {
+        // Hide all sub-tab content within the main tab
+        document.querySelectorAll(`#${mainTab} .sub-tab-content`).forEach(el => el.style.display = 'none');
+        // Show selected sub-tab
+        document.getElementById(`${mainTab}-${subTab}`).style.display = 'block';
+
+        // Update sub-tab button styles within the main tab
+        document.querySelectorAll(`#${mainTab} .sub-tab-button`).forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Toggle love status for restaurants
+    function toggleLove(name, location, button) {
+        fetch('/love_restaurant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                location: location
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.loved) {
+                // Restaurant is now loved - fill the heart
+                button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+
+                const originalCard = button.closest('.card');
+                const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
+
+                // Check if a clone of this card is already in the loved tab
+                const alreadyExists = Array.from(lovedTabContainer.children).some(card =>
+                    card.querySelector("strong")?.textContent === name &&
+                    card.querySelector(".location")?.textContent.includes(location)
+                );
+
+                if (!alreadyExists) {
+                    // Clone the card and add it to the loved tab
+                    const clonedCard = originalCard.cloneNode(true);
+                    lovedTabContainer.appendChild(clonedCard);
+                }
+            } else {
+                // Restaurant is no longer loved - empty the heart
+                button.innerHTML = '<i class="far fa-heart"></i>';
+
+                // Remove from loved tab
+                const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
+                const cards = lovedTabContainer.querySelectorAll('.card');
+
+                cards.forEach(card => {
+                    const nameElem = card.querySelector('strong');
+                    const locationElem = card.querySelector('.location');
+
+                    if (nameElem?.textContent === name && locationElem?.textContent.includes(location)) {
+                        lovedTabContainer.removeChild(card);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling love:', error);
+        });
+    }
+
+    </script>
+    
 {% endblock %}

@@ -97,9 +97,11 @@ def my_recommendations():
     user_id = session["user_id"]
     session.pop('foodies_results', None)
     foodiesrn_results = view_saved_recommendations(user_id)
+    loved_restaurants = get_loved_restaurants(user_id)  
     prepngo_results = get_saved_prepngo(session["user_id"])
     return render_template("my_recommendations.html",
                            foodiesrn_results=foodiesrn_results,
+                           loved_restaurants=loved_restaurants,
                            prepngo_results=prepngo_results)
 
 
@@ -264,6 +266,30 @@ def prep_results():
 def logout():
     session.clear()
     return redirect(url_for("login_view"))
+
+
+# AJAX route to toggle restaurant love status
+@app.route("/love_restaurant", methods=["POST"])
+def love_restaurant():
+    if "user_id" not in session:
+        return {"error": "Not logged in"}, 401
+    
+    data = request.get_json()
+    restaurant_name = data.get("name")
+    restaurant_location = data.get("location")
+    
+    if not restaurant_name or not restaurant_location:
+        return {"error": "Missing restaurant data"}, 400
+    
+    try:
+        new_loved_status = toggle_restaurant_love(
+            session["user_id"], 
+            restaurant_name, 
+            restaurant_location
+        )
+        return {"loved": new_loved_status}
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 
 # Start the Flask app

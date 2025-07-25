@@ -303,3 +303,38 @@ button:hover {
 .or-divider::after {
   right: 0;
 }
+
+/* Heart button styles */
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.heart-btn:hover {
+  transform: scale(1.1);
+  background: none;
+}
+
+.heart-btn i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn:hover i {
+  color: #ff6b6b;
+}
+
+/* Ensure restaurant actions are properly aligned */
+.restaurant-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}

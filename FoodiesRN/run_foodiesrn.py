@@ -42,7 +42,8 @@ def create_foodiesrn_table():
                 image_url TEXT,
                 distance_meters REAL,
                 driving_distance_miles REAL,
-                driving_duration_minutes REAL
+                driving_duration_minutes REAL,
+                loved BOOLEAN DEFAULT FALSE
             )
         """))
         connection.commit()
@@ -396,13 +397,16 @@ def save_to_db(results, user_id):
             ).fetchone()
 
             if not exists:
+                if 'loved' not in r:
+                    r['loved'] = False
+
                 connection.execute(
                     db.text(f"""
                         INSERT INTO {TABLE_RN} 
                         (name, location, price, rating, url, user_location, cuisine, vibe, user_id, image_url,
-                        distance_meters, driving_distance_miles, driving_duration_minutes)
+                        distance_meters, driving_distance_miles, driving_duration_minutes, loved)
                         VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id, :image_url,
-                        :distance_meters, :driving_distance_miles, :driving_duration_minutes)
+                        :distance_meters, :driving_distance_miles, :driving_duration_minutes, :loved)
                     """),
                     r
                 )
@@ -416,7 +420,7 @@ def view_saved_recommendations(user_id):
         results = connection.execute(
             db.text(f"""
                 SELECT name, location, rating, price, url, image_url, cuisine, vibe, user_location,
-                distance_meters, driving_distance_miles, driving_duration_minutes
+                distance_meters, driving_distance_miles, driving_duration_minutes, loved
                 FROM {TABLE_RN} 
                 WHERE user_id = :uid
             """),
@@ -439,6 +443,53 @@ def clear_saved_recommendations(user_id):
         )
         connection.commit()
     print("\nAll your saved recommendations have been cleared.")
+
+
+# Toggle love status for a restaurant
+def toggle_restaurant_love(user_id, restaurant_name, restaurant_location):
+    """Toggle the loved status of a restaurant"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        # First check if restaurant exists and get current loved status
+        result = connection.execute(
+            db.text(f"""
+                SELECT loved FROM {TABLE_RN} 
+                WHERE user_id = :uid AND name = :name AND location = :location
+            """),
+            {"uid": user_id, "name": restaurant_name, "location": restaurant_location}
+        ).fetchone()
+        
+        if result:
+            # Toggle the loved status
+            new_loved_status = not bool(result[0])
+            connection.execute(
+                db.text(f"""
+                    UPDATE {TABLE_RN} 
+                    SET loved = :loved 
+                    WHERE user_id = :uid AND name = :name AND location = :location
+                """),
+                {"loved": new_loved_status, "uid": user_id, "name": restaurant_name, "location": restaurant_location}
+            )
+            connection.commit()
+            return new_loved_status
+    return False
+
+
+# Get loved restaurants for a user
+def get_loved_restaurants(user_id):
+    """Get all loved restaurants for a user"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        results = connection.execute(
+            db.text(f"""
+                SELECT name, location, rating, price, url, image_url, cuisine, vibe, user_location,
+                       distance_meters, driving_distance_miles, driving_duration_minutes, loved
+                FROM {TABLE_RN} 
+                WHERE user_id = :uid AND loved = TRUE
+            """),
+            {"uid": user_id}
+        ).fetchall()
+    return results
 
 
 # Main function to run Yelp + GenAI-based restaurant recommendation pipeline
@@ -525,6 +576,19 @@ def migrate_database():
                 print("✅ Distance columns added successfully!")
             except Exception as e:
                 print(f"Error adding columns: {e}")
+
+        # Check if loved column exists and add it if it doesn't
+        try:
+            connection.execute(db.text(f"SELECT loved FROM {TABLE_RN} LIMIT 1"))
+            print("Loved column already exists")
+        except Exception:
+            print("Adding missing loved column...")
+            try:
+                connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN loved BOOLEAN DEFAULT FALSE"))
+                connection.commit()
+                print("✅ Loved column added successfully!")
+            except Exception as e:
+                print(f"Error adding loved column: {e}")
 
 
 # CLI interface for the FoodiesRN module
