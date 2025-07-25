@@ -29,6 +29,7 @@ params = {
 # Create user table if it doesn't already exist
 create_user_table()
 create_foodiesrn_table()
+migrate_database()
 
 
 # Home route redirects to login page
@@ -162,10 +163,16 @@ def foodies():
             "cuisine": request.form.get("cuisine"),
             "price": request.form.get("price"),
             "vibe": request.form.get("vibe"),
+            "radius": request.form.get("radius"),  # Add radius
+            "latitude": request.form.get("latitude"),  # Add GPS coordinates
+            "longitude": request.form.get("longitude")
         }
 
         if not all(user_input.values()):
             return render_template("foodies.html", results=None, error_msg="Please fill out all fields.")
+
+        if not user_input["location"] and not (user_input["latitude"] and user_input["longitude"]):
+            return render_template("foodies.html", results=None, error_msg="Please enter a location or use GPS.")
 
         try:
             results = run_restaurant_search(user_input, session["user_id"])

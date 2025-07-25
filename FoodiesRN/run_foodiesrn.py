@@ -8,6 +8,7 @@ from sqlalchemy import inspect
 from dotenv import load_dotenv
 from genai_utils import get_genai_model
 import time
+import json
 
 
 # Load environment variables
@@ -15,6 +16,7 @@ load_dotenv()
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
 print("GENAI_KEY in Flask:", GENAI_KEY)
+GEOAPIFY_KEY = os.getenv("GEOAPIFY_KEY")
 
 
 # Set up SQLAlchemy database engine
@@ -37,10 +39,193 @@ def create_foodiesrn_table():
                 cuisine TEXT,
                 vibe TEXT,
                 user_id INTEGER,
-                image_url TEXT
+                image_url TEXT,
+                distance_meters REAL,
+                driving_distance_miles REAL,
+                driving_duration_minutes REAL
             )
         """))
         connection.commit()
+
+
+def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
+    """
+    Calculate driving distances and times from user location to restaurants using Geoapify API.
+    Also calculates straight-line distances as fallback.
+    """
+    print(f"[DEBUG] User location: {user_lat}, {user_lng}")
+    print(f"[DEBUG] Number of restaurants to process: {len(restaurants)}")
+    
+    if not GEOAPIFY_KEY:
+        print("WARNING: GEOAPIFY_KEY not found. Distance filtering will use straight-line distance only.")
+        # Calculate straight-line distances as fallback
+        for restaurant in restaurants:
+            if 'coordinates' in restaurant:
+                rest_lat = restaurant['coordinates']['latitude']
+                rest_lng = restaurant['coordinates']['longitude']
+                
+                # Haversine formula for straight-line distance
+                import math
+                
+                # Convert latitude and longitude from degrees to radians
+                lat1, lon1, lat2, lon2 = map(math.radians, [user_lat, user_lng, rest_lat, rest_lng])
+                
+                # Haversine formula
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+                c = 2 * math.asin(math.sqrt(a))
+                
+                # Radius of earth in kilometers is 6371
+                distance_km = 6371 * c
+                distance_meters = distance_km * 1000
+                
+                restaurant['distance_meters'] = distance_meters
+                restaurant['driving_distance_miles'] = None
+                restaurant['driving_duration_minutes'] = None
+                print(f"[DEBUG] {restaurant['name']}: {distance_meters / 1609.344:.2f} miles (straight-line)")
+        return restaurants
+
+    # Prepare sources and targets for API call
+    sources = [{"lat": user_lat, "lon": user_lng}]
+    targets = []
+    
+    for restaurant in restaurants:
+        if 'coordinates' in restaurant:
+            rest_lat = restaurant['coordinates']['latitude']
+            rest_lng = restaurant['coordinates']['longitude']
+            targets.append({"lat": rest_lat, "lon": rest_lng})
+            print(f"[DEBUG] Restaurant {restaurant['name']} coordinates: {rest_lat}, {rest_lng}")
+    
+    if not targets:
+        print("No restaurant coordinates found for distance calculation")
+        return restaurants
+    
+    print(f"[DEBUG] Making Geoapify API call with {len(sources)} sources and {len(targets)} targets")
+    
+    # Make API call to Geoapify Route Matrix
+    url = "https://api.geoapify.com/v1/routematrix"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    # Request body in JSON format
+    data = {
+        "mode": "drive",
+        "sources": sources,
+        "targets": targets
+    }
+    
+    params = {
+        "apiKey": GEOAPIFY_KEY
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data, params=params, timeout=15)
+        response.raise_for_status()
+        result = response.json()
+        
+        print(f"[DEBUG] Geoapify API response received. Keys: {result.keys()}")
+        
+        # Parse results and add to restaurants
+        if 'sources_to_targets' in result and result['sources_to_targets']:
+            matrix = result['sources_to_targets'][0]
+            print(f"[DEBUG] Matrix length: {len(matrix)}")
+            
+            for i, restaurant in enumerate(restaurants):
+                if i < len(matrix) and 'coordinates' in restaurant:
+                    route_info = matrix[i]
+                    print(f"[DEBUG] Route info for {restaurant['name']}: {route_info}")
+                    
+                    # Get driving distance and time
+                    if 'distance' in route_info and 'time' in route_info:
+                        distance_meters = route_info['distance']
+                        time_seconds = route_info['time']
+                        
+                        restaurant['distance_meters'] = distance_meters
+                        restaurant['driving_distance_miles'] = distance_meters / 1609.344  # Convert to miles
+                        restaurant['driving_duration_minutes'] = time_seconds / 60  # Convert to minutes
+                        
+                        print(f"[DEBUG] {restaurant['name']}: {restaurant['driving_distance_miles']:.2f} miles, {restaurant['driving_duration_minutes']:.1f} min")
+                    else:
+                        # API call failed for this restaurant, calculate straight-line distance
+                        rest_lat = restaurant['coordinates']['latitude']
+                        rest_lng = restaurant['coordinates']['longitude']
+                        
+                        import math
+                        lat1, lon1, lat2, lon2 = map(math.radians, [user_lat, user_lng, rest_lat, rest_lng])
+                        dlat = lat2 - lat1
+                        dlon = lon2 - lon1
+                        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+                        c = 2 * math.asin(math.sqrt(a))
+                        distance_km = 6371 * c
+                        distance_meters = distance_km * 1000
+                        
+                        restaurant['distance_meters'] = distance_meters
+                        restaurant['driving_distance_miles'] = None
+                        restaurant['driving_duration_minutes'] = None
+                        print(f"[DEBUG] {restaurant['name']}: {distance_meters / 1609.344:.2f} miles (fallback straight-line)")
+        else:
+            print("[DEBUG] No matrix found in API response")
+            print(f"[DEBUG] Full API response: {result}")
+        
+        print(f"[TIMER] Geoapify distance calculation completed for {len(restaurants)} restaurants")
+        return restaurants
+        
+    except Exception as e:
+        print(f"Error calculating distances with Geoapify: {e}")
+        # Fallback to straight-line distance calculation
+        for restaurant in restaurants:
+            if 'coordinates' in restaurant:
+                rest_lat = restaurant['coordinates']['latitude']
+                rest_lng = restaurant['coordinates']['longitude']
+                
+                import math
+                lat1, lon1, lat2, lon2 = map(math.radians, [user_lat, user_lng, rest_lat, rest_lng])
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+                c = 2 * math.asin(math.sqrt(a))
+                distance_km = 6371 * c
+                distance_meters = distance_km * 1000
+                
+                restaurant['distance_meters'] = distance_meters
+                restaurant['driving_distance_miles'] = None
+                restaurant['driving_duration_minutes'] = None
+                print(f"[DEBUG] {restaurant['name']}: {distance_meters / 1609.344:.2f} miles (error fallback)")
+        
+        return restaurants
+
+
+def filter_by_radius(restaurants, radius_miles):
+    """Filter restaurants based on radius in miles"""
+    filtered = []
+    
+    print(f"[DEBUG] Filtering {len(restaurants)} restaurants by {radius_miles} mile radius")
+    
+    for restaurant in restaurants:
+        # Use driving distance if available, otherwise use straight-line distance
+        if restaurant.get('driving_distance_miles') is not None:
+            distance_miles = restaurant['driving_distance_miles']
+            distance_type = "driving"
+        elif restaurant.get('distance_meters') is not None:
+            distance_miles = restaurant['distance_meters'] / 1609.344  # Convert meters to miles
+            distance_type = "straight-line"
+        else:
+            # No distance data available, skip this restaurant
+            print(f"[DEBUG] {restaurant['name']}: No distance data available, skipping")
+            continue
+        
+        print(f"[DEBUG] {restaurant['name']}: {distance_miles:.2f} miles ({distance_type})")
+        
+        if distance_miles <= radius_miles:
+            filtered.append(restaurant)
+            print(f"[DEBUG] ✅ {restaurant['name']} included (within {radius_miles} miles)")
+        else:
+            print(f"[DEBUG] ❌ {restaurant['name']} excluded ({distance_miles:.2f} > {radius_miles} miles)")
+    
+    print(f"[DEBUG] Filtered results: {len(filtered)} restaurants within {radius_miles} miles")
+    return filtered
 
 
 # Prompt user repeatedly until they enter a valid input
@@ -101,8 +286,14 @@ def search_yelp(user_input):
         "term": f"{user_input['cuisine']} {user_input['vibe']}",
         "categories": (user_input.get("cuisine") or "").lower(),
         "price": price_map[user_input["price"]],
-        "limit": 10
+        "limit": 50
     }
+
+    if user_input.get("latitude") and user_input.get("longitude"):
+        params["latitude"] = user_input["latitude"]
+        params["longitude"] = user_input["longitude"]
+        # Remove location param when using coordinates
+        del params["location"]
 
     url = "https://api.yelp.com/v3/businesses/search"
     response = requests.get(url, headers=headers, params=params)
@@ -122,7 +313,8 @@ def search_yelp(user_input):
                     biz["location"].get("display_address", [])
                 ),
                 "url": biz["url"],
-                "image_url": biz.get("image_url", "")
+                "image_url": biz.get("image_url", ""),
+                "coordinates": biz.get("coordinates", {})
             })
 
         # this will eventually be sent to google genai after final selection
@@ -207,8 +399,10 @@ def save_to_db(results, user_id):
                 connection.execute(
                     db.text(f"""
                         INSERT INTO {TABLE_RN} 
-                        (name, location, price, rating, url, user_location, cuisine, vibe, user_id, image_url)
-                        VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id, :image_url)
+                        (name, location, price, rating, url, user_location, cuisine, vibe, user_id, image_url,
+                        distance_meters, driving_distance_miles, driving_duration_minutes)
+                        VALUES (:name, :location, :price, :rating, :url, :user_location, :cuisine, :vibe, :user_id, :image_url,
+                        :distance_meters, :driving_distance_miles, :driving_duration_minutes)
                     """),
                     r
                 )
@@ -221,7 +415,8 @@ def view_saved_recommendations(user_id):
     with engine.connect() as connection:
         results = connection.execute(
             db.text(f"""
-                SELECT name, location, rating, price, url, image_url, cuisine, vibe, user_location
+                SELECT name, location, rating, price, url, image_url, cuisine, vibe, user_location,
+                distance_meters, driving_distance_miles, driving_duration_minutes
                 FROM {TABLE_RN} 
                 WHERE user_id = :uid
             """),
@@ -253,6 +448,27 @@ def run_restaurant_search(user_input, user_id):
     results = search_yelp(user_input)
     print(f"[TIMER] Yelp API took {time.time() - start:.2f} seconds")
 
+    # Calculate distances if GPS coordinates are provided
+    if user_input.get("latitude") and user_input.get("longitude"):
+        start = time.time()
+        results = calculate_distances_with_geoapify(
+            float(user_input["latitude"]), 
+            float(user_input["longitude"]), 
+            results
+        )
+        print(f"[TIMER] Distance calculation took {time.time() - start:.2f} seconds")
+        
+        # Filter by radius if specified
+        try:
+            radius_miles = float(user_input.get("radius", 0))
+            if radius_miles > 0:
+                before_count = len(results)
+                results = filter_by_radius(results, radius_miles)
+                print(f"[TIMER] Filtered from {before_count} to {len(results)} restaurants within {radius_miles} miles")
+        except ValueError:
+            print("[WARNING] Radius input could not be converted to float.")
+
+
     if results:
         filtered_results = [r for r in results if r["rating"] > 3.5]
         if not filtered_results:
@@ -272,12 +488,36 @@ def run_restaurant_search(user_input, user_id):
             biz["vibe"] = user_input["vibe"]
             biz["user_id"] = user_id
             biz["image_url"] = biz.get("image_url", "")
+            if 'coordinates' in biz:
+                del biz['coordinates']
 
         save_to_db(top_recs, user_id)
         return top_recs
 
     else:
         return []
+
+
+# Add this function to your run_foodiesrn.py file
+
+def migrate_database():
+    """Add missing distance columns to existing table"""
+    with engine.connect() as connection:
+        # Check if columns exist and add them if they don't
+        try:
+            # Try to select the new columns to see if they exist
+            connection.execute(db.text(f"SELECT distance_meters FROM {TABLE_RN} LIMIT 1"))
+            print("Distance columns already exist")
+        except Exception:
+            print("Adding missing distance columns...")
+            try:
+                connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN distance_meters REAL"))
+                connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN driving_distance_miles REAL"))
+                connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN driving_duration_minutes REAL"))
+                connection.commit()
+                print("✅ Distance columns added successfully!")
+            except Exception as e:
+                print(f"Error adding columns: {e}")
 
 
 # CLI interface for the FoodiesRN module

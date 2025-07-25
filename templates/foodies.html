@@ -129,8 +129,11 @@
     </div>
   {% endfor %}
 </div>
-
-{% endif %}
+ {% else %}
+    <div style="text-align: center; color: red; margin-bottom: 2em;">
+      No restaurants found matching your criteria. Try increasing your search radius or adjusting your preferences.
+    </div>
+  {% endif %}
 
 <!-- If results exist, auto-scroll to the recommendations section -->
 <script>
@@ -174,9 +177,12 @@ function getLocation() {
         // Store coordinates in hidden fields
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
-        
-        // Get readable address using reverse geocoding
-        reverseGeocode(latitude, longitude);
+
+
+        // Put coordinates in location field as backup
+        locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+        locationInput.placeholder = 'GPS location found';
+
         
         locationFound = true;
         gpsBtn.innerHTML = '<i class="fas fa-check"></i> Location Found!';
@@ -213,13 +219,6 @@ function getLocation() {
     alert('Your browser does not support location services. Please enter your address manually.');
     locationInput.focus();
   }
-}
-
-function reverseGeocode(lat, lon) {
-  // Using a simple reverse geocoding approach
-  const locationInput = document.getElementById('locationInput');
-  locationInput.value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-  locationInput.placeholder = 'GPS location found';
 }
 
 // Clear GPS data when user types in location input, even after using GPS

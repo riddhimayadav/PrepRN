@@ -35,6 +35,11 @@
                 <div class="rating-price-inline">
                   <span class="rating">⭐ {{ r.rating }}</span>
                   <span class="price">💲{{ r.price }}</span>
+                  {% if r.driving_distance_miles and r.driving_duration_minutes %}
+                        <span class="distance">🚗 {{ "%.1f"|format(r.driving_distance_miles) }} mi</span>
+                    {% elif r.distance_meters %}
+                        <span class="distance">📏 {{ "%.1f"|format(r.distance_meters / 1609.344) }} mi</span>
+                    {% endif %}
                 </div>
                 
                 <div class="restaurant-actions">
