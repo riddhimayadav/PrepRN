@@ -93,7 +93,7 @@
 </script>
 
 <!-- If results were returned, display them here -->
-{% if results %}
+{% if results is not none%}
   {% if results|length > 0 %}
 <h3 id="recommendations">Top Recommendations:</h3>
 <div class="recommendation-wrapper">
@@ -226,7 +226,7 @@ function getLocation() {
       gpsBtn.style.backgroundColor = '#FB4141';
       gpsBtn.style.color = 'white';
       gpsBtn.style.pointerEvents = 'none';
-      radiusGroup.style.display = 'none';
+      radiusGroup.classList.remove('visible');
       alert('Your browser does not support location services. Please enter your address manually.');
       locationInput.focus();
     }
