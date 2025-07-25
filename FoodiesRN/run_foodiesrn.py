@@ -549,6 +549,23 @@ def run_restaurant_search(user_input, user_id):
             if 'coordinates' in biz:
                 del biz['coordinates']
 
+        # Check if any of these restaurants are already loved
+        with engine.connect() as connection:
+            for restaurant in top_recs:
+                loved_check = connection.execute(
+                    db.text(f"""
+                        SELECT loved FROM {TABLE_RN} 
+                        WHERE user_id = :uid AND name = :name AND location = :location
+                    """),
+                    {"uid": user_id, "name": restaurant["name"], "location": restaurant["location"]}
+                ).fetchone()
+                
+                # Set loved status based on database
+                if loved_check:
+                    restaurant["loved"] = bool(loved_check[0])
+                else:
+                    restaurant["loved"] = False
+
         save_to_db(top_recs, user_id)
         return top_recs
 

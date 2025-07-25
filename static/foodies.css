@@ -329,6 +329,46 @@ button:hover {
   color: #ff6b6b;
 }
 
+/* Inline heart button styles (for rating-price-inline sections) */
+.heart-btn-inline {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  padding: 0.3rem !important;
+  font-size: 1.1rem !important;
+  transition: transform 0.2s ease;
+  margin-left: 0.5rem;
+  border-radius: 0 !important;
+}
+
+.heart-btn-inline:hover {
+  transform: scale(1.1);
+  background: none !important;
+}
+
+.heart-btn-inline i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn-inline:hover i {
+  color: #ff6b6b;
+}
+
+/* Rating and price inline container */
+.rating-price-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-price-inline .rating,
+.rating-price-inline .price {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
 /* Ensure restaurant actions are properly aligned */
 .restaurant-actions {
   display: flex;

@@ -105,7 +105,17 @@
       
       <div class="restaurant-content">
         <h4>{{ r.name }} – {{ r.location }}</h4>
-        <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
+        <div class="rating-price-inline">
+          <span class="rating">⭐ {{ r.rating }}</span>
+          <span class="price">💲{{ r.price }}</span>
+          <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+            {% if r.loved %}
+            <i class="fas fa-heart" style="color: red;"></i>
+            {% else %}
+            <i class="far fa-heart"></i>
+            {% endif %}
+          </button>
+        </div>
         {% if r.driving_distance_miles and r.driving_duration_minutes %}
           <p class="driving-info">
             <i class="fas fa-car"></i> {{ "%.1f"|format(r.driving_distance_miles) }} miles 
@@ -119,9 +129,6 @@
         <!-- <p>{{ r.blurb }}</p> -->
         
         <div class="restaurant-actions">
-          <button class="heart-btn" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
-            <i class="far fa-heart"></i>
-          </button>
           <a href="{{ r.detail_url }}" class="detail-btn">
             <i class="fas fa-info-circle"></i> View Details
           </a>

@@ -210,10 +210,25 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.loved) {
-                // Restaurant is now loved - fill the heart
-                button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+            // Update ALL heart buttons for this restaurant across both tabs
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(card => {
+                const nameElem = card.querySelector('strong');
+                const locationElem = card.querySelector('.location');
+                const heartBtn = card.querySelector('.heart-btn-inline');
 
+                if (nameElem?.textContent === name && locationElem?.textContent.includes(location) && heartBtn) {
+                    if (data.loved) {
+                        // Restaurant is now loved - fill the heart
+                        heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+                    } else {
+                        // Restaurant is no longer loved - empty the heart
+                        heartBtn.innerHTML = '<i class="far fa-heart"></i>';
+                    }
+                }
+            });
+
+            if (data.loved) {
                 const originalCard = button.closest('.card');
                 const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
 
@@ -229,9 +244,6 @@
                     lovedTabContainer.appendChild(clonedCard);
                 }
             } else {
-                // Restaurant is no longer loved - empty the heart
-                button.innerHTML = '<i class="far fa-heart"></i>';
-
                 // Remove from loved tab
                 const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
                 const cards = lovedTabContainer.querySelectorAll('.card');
