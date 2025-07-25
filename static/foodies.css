@@ -245,7 +245,7 @@ button:hover {
 }
 
 .driving-info {
-  color: #28a745;
+  color: #333;
   font-weight: 500;
   margin: 5px 0;
 }
@@ -254,6 +254,11 @@ button:hover {
   color: #6c757d;
   font-style: italic;
   margin: 5px 0;
+}
+
+.rating-price-inline .distance {
+  color: black;
+  font-weight: normal;
 }
 
 /* Radius group styling - hidden by default, same width when visible */
