@@ -256,6 +256,23 @@ button:hover {
   margin: 5px 0;
 }
 
+/* Radius group styling - hidden by default, same width when visible */
+#radiusGroup {
+  display: none;
+  width: 100%;
+}
+
+#radiusGroup.visible {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure radius select has same width as other selects */
+#radiusGroup select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .or-divider {
   text-align: center;
   color: #666;

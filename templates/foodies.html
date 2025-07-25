@@ -25,14 +25,17 @@
       <input type="hidden" id="latitude" name="latitude">
       <input type="hidden" id="longitude" name="longitude">
     </div>
-      <div class="input-group">
-      <label><i class="fas fa-car"></i> Search Radius</label>
-      <select name="radius" id="radius">
-        <option value="5" {{ 'selected' if request.form.radius == '5' }}>Within 5 miles</option>
-        <option value="10" {{ 'selected' if request.form.radius == '10' else 'selected' }}>Within 10 miles</option>
-        <option value="25" {{ 'selected' if request.form.radius == '25' }}>Within 25 miles</option>
-      </select>
-    </div>
+      <div class="input-group" id="radiusGroup">
+        <label><i class="fas fa-car"></i> Search Radius</label>
+        <select name="radius" id="radius">
+          <option value="5">Within 5 miles</option>
+          <option value="10" selected>Within 10 miles</option>
+          <option value="25">Within 25 miles</option>
+        </select>
+        <small style="color: #666; font-size: 0.9em; margin-top: 0.5em; display: block; text-align: center;">
+          <i class="fas fa-info-circle"></i> Distance filtering available with GPS location
+        </small>
+      </div>
     <!-- Cuisine selection dropdown -->
     <div class="input-group">
       <label><i class="fas fa-utensils"></i> Food Type:</label>
@@ -91,6 +94,7 @@
 
 <!-- If results were returned, display them here -->
 {% if results %}
+  {% if results|length > 0 %}
 <h3 id="recommendations">Top Recommendations:</h3>
 <div class="recommendation-wrapper">
   {% for r in results %}
@@ -134,6 +138,7 @@
       No restaurants found matching your criteria. Try increasing your search radius or adjusting your preferences.
     </div>
   {% endif %}
+  {% endif %}
 
 <!-- If results exist, auto-scroll to the recommendations section -->
 <script>
@@ -157,6 +162,7 @@ let locationFound = false;
 function getLocation() {
   const gpsBtn = document.getElementById('gpsBtn');
   const locationInput = document.getElementById('locationInput');
+  const radiusGroup = document.getElementById('radiusGroup');
   
   // Update button to show loading state while retrieving location
   gpsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
@@ -178,11 +184,12 @@ function getLocation() {
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
-
         // Put coordinates in location field as backup
         locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         locationInput.placeholder = 'GPS location found';
-
+        
+        // Show radius options when GPS is used
+        radiusGroup.classList.add('visible');
         
         locationFound = true;
         gpsBtn.innerHTML = '<i class="fas fa-check"></i> Location Found!';
@@ -200,6 +207,9 @@ function getLocation() {
         gpsBtn.style.pointerEvents = 'auto'; // Re-enable hover for retry
         gpsBtn.disabled = false;
         
+        // Hide radius options on GPS failure
+        radiusGroup.classList.remove('visible');
+        
         // Show error message and focus on input
         alert('Unable to get your location. Please enter your address manually.');
         locationInput.focus();
@@ -211,22 +221,28 @@ function getLocation() {
       }
     );
   } else {
-    // Browser doesn't support geolocation
-    gpsBtn.innerHTML = '<i class="fas fa-times"></i> Not Supported';
-    gpsBtn.style.backgroundColor = '#FB4141';
-    gpsBtn.style.color = 'white';
-    gpsBtn.style.pointerEvents = 'none';
-    alert('Your browser does not support location services. Please enter your address manually.');
-    locationInput.focus();
-  }
+      // Browser doesn't support geolocation
+      gpsBtn.innerHTML = '<i class="fas fa-times"></i> Not Supported';
+      gpsBtn.style.backgroundColor = '#FB4141';
+      gpsBtn.style.color = 'white';
+      gpsBtn.style.pointerEvents = 'none';
+      radiusGroup.style.display = 'none';
+      alert('Your browser does not support location services. Please enter your address manually.');
+      locationInput.focus();
+    }
 }
 
 // Clear GPS data when user types in location input, even after using GPS
 document.getElementById('locationInput').addEventListener('input', function() {
-  if (locationFound) {
+  const radiusGroup = document.getElementById('radiusGroup');
+  
+  if (locationFound || document.getElementById('latitude').value) {
     document.getElementById('latitude').value = '';
     document.getElementById('longitude').value = '';
     locationFound = false;
+    
+    // Hide radius options when switching to manual location
+    radiusGroup.classList.remove('visible');
     
     const gpsBtn = document.getElementById('gpsBtn');
     gpsBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Use My Current Location';
@@ -234,6 +250,8 @@ document.getElementById('locationInput').addEventListener('input', function() {
     gpsBtn.style.color = '';
     gpsBtn.style.pointerEvents = 'auto'; // Re-enable hover
     gpsBtn.disabled = false;
+    
+    this.placeholder = 'Enter address, city, or zip code';
   }
 });
 </script>

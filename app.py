@@ -163,12 +163,13 @@ def foodies():
             "cuisine": request.form.get("cuisine"),
             "price": request.form.get("price"),
             "vibe": request.form.get("vibe"),
-            "radius": request.form.get("radius"),  # Add radius
-            "latitude": request.form.get("latitude"),  # Add GPS coordinates
+            "radius": request.form.get("radius") if request.form.get("latitude") else None,  # Only use radius with GPS
+            "latitude": request.form.get("latitude"),
             "longitude": request.form.get("longitude")
         }
 
-        if not all(user_input.values()):
+        # Validate required fields
+        if not all([user_input["cuisine"], user_input["price"], user_input["vibe"], user_input["location"]]):
             return render_template("foodies.html", results=None, error_msg="Please fill out all fields.")
 
         if not user_input["location"] and not (user_input["latitude"] and user_input["longitude"]):

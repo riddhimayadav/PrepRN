@@ -488,6 +488,13 @@ def run_restaurant_search(user_input, user_id):
             biz["vibe"] = user_input["vibe"]
             biz["user_id"] = user_id
             biz["image_url"] = biz.get("image_url", "")
+            if 'distance_meters' not in biz:
+                biz['distance_meters'] = None
+            if 'driving_distance_miles' not in biz:
+                biz['driving_distance_miles'] = None
+            if 'driving_duration_minutes' not in biz:
+                biz['driving_duration_minutes'] = None
+            
             if 'coordinates' in biz:
                 del biz['coordinates']
 
