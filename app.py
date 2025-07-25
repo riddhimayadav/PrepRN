@@ -36,7 +36,7 @@ migrate_database()
 @app.route("/")
 @app.route("/home")
 def home():
-    return redirect(url_for("login_view"))
+    return render_template("home.html")
 
 
 # Sign-up route: handles new user registration

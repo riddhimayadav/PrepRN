@@ -1,0 +1,56 @@
+.dashboard-container {
+  background-image: url('/static/home-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.mission-card {
+  background-color: rgba(255, 255, 255, 0.9); /* Soft white overlay */
+  padding: 3rem;
+  border-radius: 30px;
+  max-width: 700px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.mission-card h1 {
+  font-size: 3.5rem;
+  color: #ACB288;
+  margin-bottom: 1rem;
+  font-family: 'Georgia', serif;
+}
+
+.mission-card p {
+  font-size: 1.15rem;
+  color: #5a5a5a;
+  line-height: 1.7;
+  margin: 1.5rem 0;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+button {
+  background-color: #ACB288;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 0.9rem 2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #9ba47a;
+}

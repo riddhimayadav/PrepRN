@@ -24,22 +24,25 @@
   >
 </head>
 <body>
-  {% if session.username %}
-    <nav>
+  <nav>
     <div class="nav-left">
-      <span class="logo">PrepRN</span>
+      <a href="{{ url_for('home') }}" class="logo-link">
+        <span class="logo">PrepRN</span>
+      </a>
     </div>
     <div class="nav-right">
-      <!-- Link to dashboard -->
-      <a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i></a>
-      <!-- Link to saved recommendations page -->
-      <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-history"></i></a>
-      <!-- Link to logout -->
-      <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i></a>
+      {% if session.username %}
+        <!-- Logged in navigation -->
+        <a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i></a>
+        <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-history"></i></a>
+        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i></a>
+      {% else %}
+        <!-- Logged out navigation -->
+        <a href="{{ url_for('login_view') }}">Get Started</a>
+      {% endif %}
     </div>
   </nav>
-    <hr>
-  {% endif %}
+  <hr>
 
   {% block content %}{% endblock %}
 </body>

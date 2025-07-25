@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+
+<div class="dashboard-container">
+  <div class="mission-card">
+    <h1>PrepRN</h1>
+    <p>
+      At PrepRN, our mission is to make choosing what to eat simple, stress-free, and personalized.
+      <br><br>
+      Whether you're dining out or cooking at home, we help you skip the guesswork and make food decisions that fit your mood, budget, and lifestyle.
+    </p>
+
+    <div class="button-row">
+      <form method="GET" action="{{ url_for('foodies') }}">
+        <button type="submit">🍽️ Eat Out</button>
+      </form>
+      <form method="POST" action="{{ url_for('prep') }}">
+        <button type="submit">🥗 Eat In</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

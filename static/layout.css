@@ -43,3 +43,33 @@
     border: none;
     border-top: 1px solid #ddd;
   }
+
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+}
+
+.logo-link .logo {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.logo-link:hover .logo {
+  color: #9ba47a; /* Slightly darker green on hover */
+}
+
+.nav-right a {
+  color: inherit;
+  text-decoration: none;
+  margin-left: 1rem;
+  transition: color 0.3s ease;
+}
+
+.nav-right a:hover {
+  color: #ACB288;
+}
