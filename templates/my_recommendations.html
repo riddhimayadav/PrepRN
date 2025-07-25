@@ -145,12 +145,12 @@
               <div class="card-content">
                 <strong>{{ m[0] }}</strong><br>
                 <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
-                <p class="meal-description">{{ m[2] }}</p>
-                <div class="meal-actions">
-                  <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
                     <i class="far fa-heart"></i>
                   </button>
-                  <a href="{{ m[3] }}" target="_blank" class="details-btn">
+                <p class="meal-description">{{ m[2] }}</p>
+                <div class="meal-actions">
+                    <a href="{{ m[3] }}" target="_blank" class="details-btn">
                     <i class="fas fa-external-link-alt"></i> View Recipe
                   </a>
                 </div>
@@ -260,6 +260,46 @@
         })
         .catch(error => {
             console.error('Error toggling love:', error);
+        });
+    }
+
+    // Toggle love status for meals
+    function toggleMealLove(name, url, button) {
+        fetch('/love_meal', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                url: url
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update ALL heart buttons for this meal across both tabs
+            const allCards = document.querySelectorAll('.meal-card');
+            allCards.forEach(card => {
+                const nameElem = card.querySelector('strong');
+                const heartBtn = card.querySelector('.heart-btn');
+                const recipeLink = card.querySelector('a[href="' + url + '"]');
+
+                if (nameElem?.textContent === name && recipeLink && heartBtn) {
+                    if (data.loved) {
+                        // Meal is now loved - fill the heart
+                        heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+                    } else {
+                        // Meal is no longer loved - empty the heart
+                        heartBtn.innerHTML = '<i class="far fa-heart"></i>';
+                    }
+                }
+            });
+
+            // If you want to add loved meals to a "Loved" tab later, you can add that logic here
+            // Similar to how restaurants work
+        })
+        .catch(error => {
+            console.error('Error toggling meal love:', error);
         });
     }
 

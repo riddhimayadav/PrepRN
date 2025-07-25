@@ -25,9 +25,13 @@ def init_db(path: str) -> sqlite3.Connection:
             diets TEXT,
             summary TEXT,
             source_url TEXT,
+            loved INTEGER DEFAULT 0,
             FOREIGN KEY(request_id) REFERENCES requests(id)
         )
     ''')
+
+    add_loved_column_to_meals(conn)
+    
     # Table to store meals generated from a request
     cur.execute('''
         CREATE TABLE IF NOT EXISTS feedback (
@@ -51,6 +55,60 @@ def init_db(path: str) -> sqlite3.Connection:
     ''')
     conn.commit()
     return conn
+
+
+def add_loved_column_to_meals(conn: sqlite3.Connection) -> None:
+    """Add loved column to meals table if it doesn't exist."""
+    cur = conn.cursor()
+    try:
+        cur.execute('ALTER TABLE meals ADD COLUMN loved INTEGER DEFAULT 0')
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+
+
+def toggle_meal_love_status(conn: sqlite3.Connection, user_id: int, meal_name: str, meal_url: str) -> bool:
+    """Toggle the love status of a meal for a user and return the new status."""
+    cur = conn.cursor()
+    
+    # First, find the meal in the user's saved meals
+    cur.execute('''
+        SELECT meals.id, meals.loved
+        FROM meals
+        JOIN requests ON meals.request_id = requests.id
+        WHERE requests.user_id = ? AND meals.title = ? AND meals.source_url = ?
+        LIMIT 1
+    ''', (user_id, meal_name, meal_url))
+    
+    result = cur.fetchone()
+    
+    if result:
+        meal_id, current_loved_status = result
+        # Toggle the loved status
+        new_loved_status = 1 if current_loved_status == 0 else 0
+        
+        cur.execute('''
+            UPDATE meals SET loved = ? WHERE id = ?
+        ''', (new_loved_status, meal_id))
+        
+        conn.commit()
+        return bool(new_loved_status)
+    
+    return False
+
+
+def get_user_loved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
+    """Retrieve all loved meals for a user."""
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT meals.title, meals.price, meals.summary, meals.source_url
+        FROM meals
+        JOIN requests ON meals.request_id = requests.id
+        WHERE requests.user_id = ? AND meals.loved = 1
+        ORDER BY meals.id DESC
+    ''', (user_id,))
+    return cur.fetchall()
 
 
 # Save a meal request and return the ID of the newly created request row

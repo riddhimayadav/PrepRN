@@ -6,7 +6,7 @@ from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
 from prepngo.PrepnGo import main as run_prepngo_meals
-from shared.prepngo_helpers import get_prepngo_meals, save_prepngo_results, get_saved_prepngo, clear_saved_prepngo
+from shared.prepngo_helpers import *
 from dotenv import load_dotenv
 import time
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table
@@ -99,10 +99,12 @@ def my_recommendations():
     foodiesrn_results = view_saved_recommendations(user_id)
     loved_restaurants = get_loved_restaurants(user_id)  
     prepngo_results = get_saved_prepngo(session["user_id"])
+    loved_meals = get_loved_meals(session["user_id"])
     return render_template("my_recommendations.html",
                            foodiesrn_results=foodiesrn_results,
                            loved_restaurants=loved_restaurants,
-                           prepngo_results=prepngo_results)
+                           prepngo_results=prepngo_results,
+                           loved_meals=loved_meals)
 
 
 # Clear saved FoodiesRN results
@@ -286,6 +288,30 @@ def love_restaurant():
             session["user_id"], 
             restaurant_name, 
             restaurant_location
+        )
+        return {"loved": new_loved_status}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+# AJAX route to toggle meal love status
+@app.route("/love_meal", methods=["POST"])
+def love_meal():
+    if "user_id" not in session:
+        return {"error": "Not logged in"}, 401
+    
+    data = request.get_json()
+    meal_name = data.get("name")
+    meal_url = data.get("url")
+    
+    if not meal_name or not meal_url:
+        return {"error": "Missing meal data"}, 400
+    
+    try:
+        new_loved_status = toggle_meal_love(
+            session["user_id"], 
+            meal_name, 
+            meal_url
         )
         return {"loved": new_loved_status}
     except Exception as e:

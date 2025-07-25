@@ -252,9 +252,10 @@ button:hover {
 
 .meal-actions {
   display: flex;
-  margin-top: -3.5em;
-  flex-direction: column;
-  align-items: flex-start;
+  margin-top: 1em;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .heart-btn,
@@ -270,4 +271,23 @@ button:hover {
 .heart-btn-inline:focus {
   outline: none;
   box-shadow: none;
+}
+
+.meal-card .heart-btn {
+  background: none !important;
+  transition: transform 0.2s ease;
+}
+
+.meal-card .heart-btn:hover {
+  background: none !important;
+  transform: scale(1.1);
+}
+
+.meal-card .heart-btn i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.meal-card .heart-btn:hover i {
+  color: #ff6b6b;
 }
