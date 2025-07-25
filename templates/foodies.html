@@ -13,7 +13,25 @@
     <!-- Location input field -->
     <div class="input-group">
       <label><i class="fas fa-map-marker-alt"></i> Location:</label>
-      <input name="location" placeholder="(e.g., Austin, TX)" required>
+      <div class="location-controls">
+        <button type="button" class="location-btn default" id="gpsBtn" onclick="getLocation()">
+          <i class="fas fa-location-arrow"></i> Use My Current Location
+        </button>
+        <div class="or-divider">or</div>
+        <input type="text" id="locationInput" name="location" 
+               placeholder="Enter address, city, or zip code" 
+               value="{{ request.form.location if request.form.location }}">
+      </div>
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+    </div>
+      <div class="input-group">
+      <label><i class="fas fa-car"></i> Search Radius</label>
+      <select name="radius" id="radius">
+        <option value="5" {{ 'selected' if request.form.radius == '5' }}>Within 5 miles</option>
+        <option value="10" {{ 'selected' if request.form.radius == '10' else 'selected' }}>Within 10 miles</option>
+        <option value="25" {{ 'selected' if request.form.radius == '25' }}>Within 25 miles</option>
+      </select>
     </div>
     <!-- Cuisine selection dropdown -->
     <div class="input-group">
@@ -84,6 +102,16 @@
       <div class="restaurant-content">
         <h4>{{ r.name }} – {{ r.location }}</h4>
         <p>Rating: {{ r.rating }} | Price: {{ r.price }}</p>
+        {% if r.driving_distance_miles and r.driving_duration_minutes %}
+          <p class="driving-info">
+            <i class="fas fa-car"></i> {{ "%.1f"|format(r.driving_distance_miles) }} miles 
+            • {{ r.driving_duration_minutes|int }} min drive
+          </p>
+        {% elif r.distance_meters %}
+          <p class="distance-info">
+            <i class="fas fa-ruler-horizontal"></i> {{ "%.1f"|format(r.distance_meters / 1609.344) }} miles (straight line)
+          </p>
+        {% endif %}
         <p>{{ r.blurb }}</p>
         
         <div class="restaurant-actions">
@@ -115,6 +143,100 @@
       }
     }
   });
+</script>
+
+<script>
+
+// creates a flag to remember if we got the user's location
+let locationFound = false;
+
+// this is the func that runs when someone clicks GPS button
+function getLocation() {
+  const gpsBtn = document.getElementById('gpsBtn');
+  const locationInput = document.getElementById('locationInput');
+  
+  // Update button to show loading state while retrieving location
+  gpsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+  gpsBtn.disabled = true;
+  gpsBtn.style.backgroundColor = '#ACB288';
+  gpsBtn.style.color = 'white';
+  gpsBtn.style.pointerEvents = 'none'; // Disable hover during loading
+
+  // if browser supports GPS location services
+  if (navigator.geolocation) {
+    // gets the actual location
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        // Success - got GPS coordinates
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        
+        // Store coordinates in hidden fields
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+        
+        // Get readable address using reverse geocoding
+        reverseGeocode(latitude, longitude);
+        
+        locationFound = true;
+        gpsBtn.innerHTML = '<i class="fas fa-check"></i> Location Found!';
+        gpsBtn.style.backgroundColor = '#ACB288';
+        gpsBtn.style.color = 'white';
+        gpsBtn.style.pointerEvents = 'none'; // Disable hover when found
+        gpsBtn.disabled = false;
+      },
+      function(error) {
+        // Error or denied
+        console.error('GPS Error:', error);
+        gpsBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS Unavailable';
+        gpsBtn.style.backgroundColor = '#FB4141';
+        gpsBtn.style.color = 'white';
+        gpsBtn.style.pointerEvents = 'auto'; // Re-enable hover for retry
+        gpsBtn.disabled = false;
+        
+        // Show error message and focus on input
+        alert('Unable to get your location. Please enter your address manually.');
+        locationInput.focus();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      }
+    );
+  } else {
+    // Browser doesn't support geolocation
+    gpsBtn.innerHTML = '<i class="fas fa-times"></i> Not Supported';
+    gpsBtn.style.backgroundColor = '#FB4141';
+    gpsBtn.style.color = 'white';
+    gpsBtn.style.pointerEvents = 'none';
+    alert('Your browser does not support location services. Please enter your address manually.');
+    locationInput.focus();
+  }
+}
+
+function reverseGeocode(lat, lon) {
+  // Using a simple reverse geocoding approach
+  const locationInput = document.getElementById('locationInput');
+  locationInput.value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  locationInput.placeholder = 'GPS location found';
+}
+
+// Clear GPS data when user types in location input, even after using GPS
+document.getElementById('locationInput').addEventListener('input', function() {
+  if (locationFound) {
+    document.getElementById('latitude').value = '';
+    document.getElementById('longitude').value = '';
+    locationFound = false;
+    
+    const gpsBtn = document.getElementById('gpsBtn');
+    gpsBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Use My Current Location';
+    gpsBtn.style.backgroundColor = '';
+    gpsBtn.style.color = '';
+    gpsBtn.style.pointerEvents = 'auto'; // Re-enable hover
+    gpsBtn.disabled = false;
+  }
+});
 </script>
 
 {% endblock %}

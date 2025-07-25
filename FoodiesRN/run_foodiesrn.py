@@ -261,7 +261,8 @@ def run_restaurant_search(user_input, user_id):
         top_recs = random.sample(filtered_results, k=num_recs)
 
         start = time.time()
-        blurbs = generate_blurbs(top_recs, user_input)
+        #blurbs = generate_blurbs(top_recs, user_input)
+        blurbs = ["Blurb feature disabled for now.", "Blurb feature disabled for now.", "Blurb feature disabled for now."]
         print(f"[TIMER] GenAI API took {time.time() - start:.2f} seconds")
 
         for biz, blurb in zip(top_recs, blurbs):
