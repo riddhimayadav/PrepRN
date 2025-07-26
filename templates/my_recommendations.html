@@ -78,6 +78,12 @@
   <!-- Loved Restaurants Sub-tab -->
   <div id="foodies-loved" class="sub-tab-content" style="display: none;">
     <div class="card-section">
+      <div class="section-header">
+        <!-- Button to clear all loved restaurants -->
+        <form method="POST" action="{{ url_for('clear_loved_restaurants') }}">
+          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved restaurants?')">Clear All Loved Restaurants</button>
+        </form>
+      </div>
       {% if loved_restaurants %}
         <div class="card-container">
           {% for r in loved_restaurants %}
@@ -141,13 +147,17 @@
       {% if prepngo_results %}
         <div class="card-container">
           {% for m in prepngo_results %}
-            <div class="card meal-card">
+            <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}">
               <div class="card-content">
                 <strong>{{ m[0] }}</strong><br>
                 <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
                 <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                    {% if m[4] %}
+                    <i class="fas fa-heart" style="color: red;"></i>
+                    {% else %}
                     <i class="far fa-heart"></i>
-                  </button>
+                    {% endif %}
+                </button>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
                     <a href="{{ m[3] }}" target="_blank" class="details-btn">
@@ -167,7 +177,35 @@
   <!-- Loved Meals Sub-tab -->
   <div id="prep-loved" class="sub-tab-content" style="display: none;">
     <div class="card-section">
-      <p>❤️ Loved meals feature coming soon! We're working on making individual recipes loveable.</p>
+      <div class="section-header">
+        <!-- Button to clear all loved meals -->
+        <form method="POST" action="{{ url_for('clear_loved_meals') }}">
+          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved meals?')">Clear All Loved Meals</button>
+        </form>
+      </div>
+      {% if loved_meals %}
+        <div class="card-container">
+          {% for m in loved_meals %}
+            <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}">
+              <div class="card-content">
+                <strong>{{ m[0] }}</strong><br>
+                <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
+                <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                  <i class="fas fa-heart" style="color: red;"></i>
+                </button>
+                <p class="meal-description">{{ m[2] }}</p>
+                <div class="meal-actions">
+                  <a href="{{ m[3] }}" target="_blank" class="details-btn">
+                    <i class="fas fa-external-link-alt"></i> View Recipe
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No loved meals yet. ❤️ Heart some meals to see them here!</p>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -278,13 +316,13 @@
         .then(response => response.json())
         .then(data => {
             // Update ALL heart buttons for this meal across both tabs
-            const allCards = document.querySelectorAll('.meal-card');
-            allCards.forEach(card => {
-                const nameElem = card.querySelector('strong');
+            const allMealCards = document.querySelectorAll('.meal-card');
+            allMealCards.forEach(card => {
+                const cardName = card.getAttribute('data-meal-name');
+                const cardUrl = card.getAttribute('data-meal-url');
                 const heartBtn = card.querySelector('.heart-btn');
-                const recipeLink = card.querySelector('a[href="' + url + '"]');
 
-                if (nameElem?.textContent === name && recipeLink && heartBtn) {
+                if (cardName === name && cardUrl === url && heartBtn) {
                     if (data.loved) {
                         // Meal is now loved - fill the heart
                         heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
@@ -295,8 +333,31 @@
                 }
             });
 
-            // If you want to add loved meals to a "Loved" tab later, you can add that logic here
-            // Similar to how restaurants work
+            // Handle loved meals tab
+            const lovedTabContainer = document.getElementById('prep-loved').querySelector('.card-container');
+            
+            if (data.loved) {
+                // Add to loved tab if not already there
+                const originalCard = button.closest('.card');
+                const alreadyExists = Array.from(lovedTabContainer.children).some(card =>
+                    card.getAttribute('data-meal-name') === name &&
+                    card.getAttribute('data-meal-url') === url
+                );
+
+                if (!alreadyExists) {
+                    const clonedCard = originalCard.cloneNode(true);
+                    lovedTabContainer.appendChild(clonedCard);
+                }
+            } else {
+                // Remove from loved tab
+                const cards = lovedTabContainer.querySelectorAll('.meal-card');
+                cards.forEach(card => {
+                    if (card.getAttribute('data-meal-name') === name && 
+                        card.getAttribute('data-meal-url') === url) {
+                        lovedTabContainer.removeChild(card);
+                    }
+                });
+            }
         })
         .catch(error => {
             console.error('Error toggling meal love:', error);

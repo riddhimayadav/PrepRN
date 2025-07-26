@@ -126,6 +126,28 @@ def clear_prepngo():
     return redirect(url_for("my_recommendations"))
 
 
+# Clear loved restaurants
+@app.route("/clear_loved_restaurants", methods=["POST"])
+def clear_loved_restaurants():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+    
+    from FoodiesRN.run_foodiesrn import clear_loved_restaurants_db
+    clear_loved_restaurants_db(session["user_id"])
+    return redirect(url_for("my_recommendations"))
+
+
+# Clear loved meals  
+@app.route("/clear_loved_meals", methods=["POST"])
+def clear_loved_meals():
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+    
+    from shared.prepngo_helpers import clear_loved_meals_db
+    clear_loved_meals_db(session["user_id"])
+    return redirect(url_for("my_recommendations"))
+
+
 # Restaurant detail page
 @app.route("/restaurant/<path:restaurant_name>/<path:restaurant_location>")
 def restaurant_detail(restaurant_name, restaurant_location):

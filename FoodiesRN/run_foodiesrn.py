@@ -49,6 +49,18 @@ def create_foodiesrn_table():
         connection.commit()
 
 
+def clear_loved_restaurants_db(user_id):
+    """Clear all loved restaurants for a specific user by setting loved = FALSE"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        connection.execute(
+            db.text(f"UPDATE {TABLE_RN} SET loved = FALSE WHERE user_id = :uid"),
+            {"uid": user_id}
+        )
+        connection.commit()
+    print("\nAll your loved restaurants have been cleared.")
+
+
 def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
     """
     Calculate driving distances and times from user location to restaurants using Geoapify API.

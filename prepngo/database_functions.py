@@ -182,13 +182,25 @@ def get_saved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
     """Retrieve all saved meals for a user, joined with request metadata."""
     cur = conn.cursor()
     cur.execute('''
-        SELECT meals.title, meals.price, meals.summary, meals.source_url
+        SELECT meals.title, meals.price, meals.summary, meals.source_url, meals.loved
         FROM meals
         JOIN requests ON meals.request_id = requests.id
         WHERE requests.user_id = ?
         ORDER BY meals.id DESC
     ''', (user_id,))
     return cur.fetchall()
+
+
+def clear_loved_meals_db(conn: sqlite3.Connection, user_id: int) -> None:
+    """Clear all loved meals for a user by setting loved = 0."""
+    cur = conn.cursor()
+    cur.execute('''
+        UPDATE meals SET loved = 0 
+        WHERE request_id IN (
+            SELECT id FROM requests WHERE user_id = ?
+        )
+    ''', (user_id,))
+    conn.commit()
 
 
 # Delete all meals (and requests) associated with a user

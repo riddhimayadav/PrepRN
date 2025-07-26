@@ -26,6 +26,14 @@ def get_saved_prepngo(user_id):
     return results
 
 
+def clear_loved_meals_db(user_id):
+    """Clear all loved meals for a user"""
+    conn = init_db('preprn.db')
+    from prepngo.database_functions import clear_loved_meals_db as clear_loved_db
+    clear_loved_db(conn, user_id)
+    conn.close()
+
+
 # Clear all saved meal results for a user
 def clear_saved_prepngo(user_id):
     conn = init_db('preprn.db')
