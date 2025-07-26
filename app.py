@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import time
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 import urllib.parse
+from prepngo.database_functions import init_db
 
 
 # Load environment variables
@@ -267,6 +268,24 @@ def prep():
         results["duration"] = f"{(time.time() - start):.2f}"
 
         save_prepngo_results(results["meals"], user_input, session["user_id"])
+
+        # Check loved status for each meal after saving to database
+        conn = init_db('preprn.db')
+        for meal in results["meals"]:
+            cur = conn.cursor()
+            cur.execute('''
+                SELECT meals.loved
+                FROM meals
+                JOIN requests ON meals.request_id = requests.id
+                WHERE requests.user_id = ? AND meals.title = ? AND meals.source_url = ?
+                ORDER BY meals.id DESC
+                LIMIT 1
+            ''', (session["user_id"], meal['title'], meal['source_url']))
+            
+            loved_result = cur.fetchone()
+            meal['loved'] = bool(loved_result[0]) if loved_result else False
+
+        conn.close()
         session["prep_results"] = results
     return render_template("prep.html", results=session.get("prep_results"))
 

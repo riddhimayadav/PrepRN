@@ -1,4 +1,4 @@
-/* Re-use same green as Eat Out */
+/* Re-use same green as Eat Out */
 :root {
   --primary-green: #ACB288;
 }
@@ -150,4 +150,63 @@ ul.store-list li:before {
 ul.store-list li:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Heart button styles - matching restaurant side */
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.heart-btn:hover {
+  transform: scale(1.1);
+  background: none;
+}
+
+.heart-btn i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn:hover i {
+  color: #ff6b6b;
+}
+
+/* Inline heart button styles (for rating-price-inline sections) */
+.heart-btn-inline {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  padding: 0.3rem !important;
+  font-size: 1.1rem !important;
+  transition: transform 0.2s ease;
+  margin-left: 0.5rem;
+  border-radius: 0 !important;
+}
+
+.heart-btn-inline:hover {
+  transform: scale(1.1);
+  background: none !important;
+}
+
+.heart-btn-inline i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn-inline:hover i {
+  color: #ff6b6b;
+}
+
+/* Price and heart inline container */
+.price-heart-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 5px 0;
 }

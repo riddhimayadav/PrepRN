@@ -110,7 +110,14 @@
           {% for m in results['meals'] %}
             <li>
               <strong>{{ m['title'] }}</strong> —
-              ${{ "%.2f"|format(m['price']) }}<br>
+              ${{ "%.2f"|format(m['price']) }}
+              <button class="heart-btn-inline" onclick="toggleMealLove('{{ m['title'] }}', '{{ m['source_url'] }}', this)">
+                {% if m.get('loved', false) %}
+                <i class="fas fa-heart" style="color: red;"></i>
+                {% else %}
+                <i class="far fa-heart"></i>
+                {% endif %}
+              </button><br>
               {{ m['summary'] }}<br>
               <a href="{{ m['source_url'] }}" target="_blank">View Recipe</a>
             </li>
@@ -145,5 +152,32 @@
     const rec = document.getElementById("recommendations");
     if (rec) rec.scrollIntoView({ behavior: "smooth" });
   });
+
+  // Toggle love status for meals
+  function toggleMealLove(name, url, button) {
+    fetch('/love_meal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: name,
+        url: url
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.loved) {
+        // Meal is now loved - fill the heart
+        button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+      } else {
+        // Meal is no longer loved - empty the heart
+        button.innerHTML = '<i class="far fa-heart"></i>';
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling meal love:', error);
+    });
+  }
 </script>
 {% endblock %}
