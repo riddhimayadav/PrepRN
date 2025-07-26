@@ -1,4 +1,3 @@
-<style>
 /* Match existing app theme */
 .restaurant-detail-wrapper {
   max-width: 1200px;
@@ -76,6 +75,8 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .rating, .price {
@@ -159,6 +160,57 @@
   margin-bottom: 0.5rem;
   color: black;
   font-weight: bold;
+}
+
+/* Heart button styles - matching restaurant listing page */
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.heart-btn:hover {
+  transform: scale(1.1);
+  background: none;
+}
+
+.heart-btn i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn:hover i {
+  color: #ff6b6b;
+}
+
+/* Inline heart button styles (for rating-price-cuisine-vibe sections) */
+.heart-btn-inline {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  padding: 0.3rem !important;
+  font-size: 1.1rem !important;
+  transition: transform 0.2s ease;
+  margin-left: 0.5rem;
+  border-radius: 0 !important;
+}
+
+.heart-btn-inline:hover {
+  transform: scale(1.1);
+  background: none !important;
+}
+
+.heart-btn-inline i {
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.heart-btn-inline:hover i {
+  color: #ff6b6b;
 }
 
 /* Large screens - keep your narrow layout */
@@ -245,6 +297,10 @@
   .info-grid {
     grid-template-columns: 1fr;
   }
+  
+  .rating-price-cuisine-vibe {
+    justify-content: center;
+  }
 }
 
 /* Mobile screens */
@@ -278,7 +334,6 @@
   padding: 2rem;
   background-color: #fafafa;
   margin-bottom: 4em;
-  
 }
 
 .restaurant-map h3 {
@@ -316,5 +371,3 @@
     height: 250px;
   }
 }
-
-</style>

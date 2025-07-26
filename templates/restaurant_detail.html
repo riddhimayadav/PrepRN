@@ -24,6 +24,13 @@
           <span class="price">{{ restaurant.price }}</span>
           <span class="price">{{ restaurant.cuisine }}</span>
           <span class="price">{{ restaurant.vibe }}</span>
+          <button class="heart-btn-inline" onclick="toggleLove('{{ restaurant.name }}', '{{ restaurant.location }}', this)">
+            {% if restaurant.loved %}
+            <i class="fas fa-heart" style="color: red;"></i>
+            {% else %}
+            <i class="far fa-heart"></i>
+            {% endif %}
+          </button>
         </div>
         
         <div class="action-buttons">
@@ -62,5 +69,34 @@
   </div>
 
 </div>
+
+<script>
+// Toggle love status for restaurants
+function toggleLove(name, location, button) {
+  fetch('/love_restaurant', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: name,
+      location: location
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.loved) {
+      // Restaurant is now loved - fill the heart
+      button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+    } else {
+      // Restaurant is no longer loved - empty the heart
+      button.innerHTML = '<i class="far fa-heart"></i>';
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling love:', error);
+  });
+}
+</script>
 
 {% endblock %}
