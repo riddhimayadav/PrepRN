@@ -28,15 +28,17 @@
   background-color: #d3e3b3;
 }
 
-.restaurant-header {
+.restaurant-header,
+.restaurant-description, 
+.additional-info {
   background-color: #ffffff;
   border: 2px solid #333;
   border-radius: 10px;
   padding: 2rem;
   margin-bottom: 2em;
-  /* Very narrow on large screens */
-  margin-left: 35rem;
-  margin-right: 35rem;
+  max-width: 700px;  /* Adjust this to your preferred width */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .restaurant-info {
