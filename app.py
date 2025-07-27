@@ -255,7 +255,9 @@ def prep():
             "budget":   request.form.get("budget"),
             "servings": request.form.get("servings"),
             "diets":    request.form.getlist("diet"),
-            "meal_type": request.form.get("meal_type", "").strip()
+            "meal_type": request.form.get("meal_type", "").strip(),
+            "pantry": [item.strip().lower() for item in request.form.get("pantry", "").split(",") if item.strip()],
+            "grocery": request.form.get("grocery")  # 'yes' or 'no'
         }
 
         if not (user_input["location"] and user_input["budget"] and user_input["servings"]):

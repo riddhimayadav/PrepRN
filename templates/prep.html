@@ -93,6 +93,22 @@
           </label>
         {% endfor %}
       </fieldset>
+<!-- Grocery Option -->
+<div class="input-group">
+  <label><i class="fas fa-shopping-cart"></i> Would you like to grocery shop?</label><br>
+  <label><input type="radio" name="grocery" value="yes" required> Yes</label>
+  <label><input type="radio" name="grocery" value="no"> No, use only my pantry</label>
+</div>
+
+<!-- Pantry Input (optional) -->
+<div class="input-group">
+  <label><i class="fas fa-boxes"></i> Pantry Items (comma-separated):</label>
+  <input
+    type="text"
+    name="pantry"
+    placeholder="e.g., rice, eggs, tomato sauce"
+  >
+</div>
 
       <!-- Submit -->
       <button type="submit">Continue</button>

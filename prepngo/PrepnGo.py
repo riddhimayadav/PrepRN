@@ -96,41 +96,52 @@ def generate_shopping_list_with_genai(recipes: List[dict]) -> str:
     resp = model.generate_content(prompt)
     return resp.text.strip()
 
-def main(user_input: dict) -> list:
-
+def main(user_input: dict) -> dict:
     budget = float(user_input["budget"])
     servings = int(user_input["servings"])
     diets = user_input.get('diets', [])
     meal_type = user_input.get("meal_type", "")
-    # if isinstance(diets, str):
-    #     diets = [diets]
-    # user_id = user_input.get('user_id')
+    grocery = user_input.get("grocery", "yes")
+    pantry = user_input.get("pantry", [])
 
-    # normalize to list of lowercase tags
-    tags = []
-    for d in diets:
-        if d:
-            tags.append(d.strip().lower())
+    tags = [d.strip().lower() for d in diets if d]
     if meal_type:
         tags.append(meal_type.strip().lower())
 
     loc = user_input.get("location", "")
-    if "," in loc:
-        city, state = (s.strip() for s in loc.split(",", 1))
-    else:
-        city, state = loc, ""
-    
-    # Get meals from Spoonacular API
+    city, state = (loc.split(",") + [""])[:2]
+    city, state = city.strip(), state.strip()
+
+    # If user doesn't want to go grocery shopping
+    if grocery.lower() == "no":
+        from prepngo.spoonacular_utils import find_by_ingredients, get_recipe_information
+
+        basic_meals = find_by_ingredients(pantry, number=5)
+
+        meals = []
+        for item in basic_meals:
+            full_details = get_recipe_information(item['id'])
+            meal = {
+                "title": full_details.get("title", ""),
+                "summary": get_summary(full_details.get("title", "")),
+                "price": 0.0,  # pantry meals are free
+                "diets": full_details.get("diets", []),
+                "source_url": full_details.get("sourceUrl", "")
+            }
+            meals.append(meal)
+
+        return {
+            "meals": meals,
+            "stores": "✅ No grocery stores needed. All meals use pantry ingredients!"
+        }
+
+    # Otherwise, fetch random meal plan with grocery shopping
     meals = get_random_meal_plan(budget, servings, tags)
-
-    # Get stores from Gemini API
     stores = _generate_store_suggestions(city, state, budget)
-
-    # Add Gemini AI summaries if needed
     for meal in meals:
         meal['summary'] = get_summary(meal['title'])
 
     return {
         "meals": meals,
-        "stores": stores,
+        "stores": stores
     }

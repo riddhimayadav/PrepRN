@@ -29,3 +29,28 @@ def get_random_meal_plan(budget, servings, tags):
             "source_url":  item.get("sourceUrl", "")
         })
     return meals
+def find_by_ingredients(ingredients, number=5):
+    api_key = os.getenv("SPOON_API_KEY")
+
+    response = requests.get(
+        "https://api.spoonacular.com/recipes/findByIngredients",
+        params={
+            "apiKey": api_key,
+            "ingredients": ",".join(ingredients),
+            "number": number,
+            "ranking": 1,  # prioritize recipes that use more of the ingredients
+            "ignorePantry": False,
+            
+        }
+    )
+    response.raise_for_status()
+    return response.json()
+
+def get_recipe_information(recipe_id: int) -> dict:
+    api_key = os.getenv("SPOON_API_KEY")
+    url = f"https://api.spoonacular.com/recipes/{recipe_id}/information"
+    params = {"apiKey": api_key}
+
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    return response.json()
