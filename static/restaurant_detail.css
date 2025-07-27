@@ -373,3 +373,186 @@
     height: 250px;
   }
 }
+
+/* Current notes display */
+.current-notes-display {
+  background-color: white;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.notes-content p {
+  margin: 0;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap; /* Preserve line breaks */
+  font-size: 0.95rem;
+}
+
+/* Notes editor */
+.notes-editor {
+  background-color: white;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.notes-editor textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: #fafafa;
+}
+
+.notes-editor textarea:focus {
+  outline: none;
+  border-color: #ACB288;
+  box-shadow: 0 0 0 3px rgba(172, 178, 136, 0.2);
+  background-color: white;
+}
+
+.notes-editor textarea::placeholder {
+  color: #999;
+  line-height: 1.4;
+}
+
+/* No notes state */
+.no-notes-state {
+  text-align: center;
+  padding: 2rem;
+  background-color: white;
+  border: 2px solid #333;
+  border-radius: 10px;
+}
+
+.no-notes-text {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.no-notes-text i {
+  color: #ACB288;
+  margin-right: 0.5rem;
+}
+
+/* Action buttons */
+.notes-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-notes-btn,
+.save-notes-btn,
+.edit-notes-btn,
+.cancel-notes-btn,
+.delete-notes-btn {
+  padding: 0.8em 1.5em;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 8px;
+  border: 2px solid #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-notes-btn,
+.save-notes-btn {
+  background-color: #ACB288;
+  color: white;
+  border-color: #ACB288;
+}
+
+.add-notes-btn:hover,
+.save-notes-btn:hover {
+  background-color: #9ba47a;
+  border-color: #9ba47a;
+}
+
+.edit-notes-btn {
+  background-color: white;
+  color: #333;
+}
+
+.edit-notes-btn:hover {
+  background-color: #d3e3b3;
+}
+
+.cancel-notes-btn {
+  background-color: #f8f9fa;
+  color: #666;
+  border-color: #ddd;
+}
+
+.cancel-notes-btn:hover {
+  background-color: #e9ecef;
+}
+
+.delete-notes-btn {
+  background-color: white;
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.delete-notes-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Character counter */
+.character-count {
+  text-align: right;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Status indicator */
+.notes-status {
+  text-align: center;
+  padding: 1rem;
+  color: #ACB288;
+  font-weight: 500;
+}
+
+.notes-status i {
+  margin-right: 0.5rem;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .restaurant-notes {
+    margin: 1.5rem 1rem 3rem 1rem;
+    padding: 1.5rem;
+  }
+  
+  .notes-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .add-notes-btn,
+  .save-notes-btn,
+  .edit-notes-btn,
+  .cancel-notes-btn,
+  .delete-notes-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}

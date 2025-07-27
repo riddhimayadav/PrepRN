@@ -585,8 +585,6 @@ def run_restaurant_search(user_input, user_id):
         return []
 
 
-# Add this function to your run_foodiesrn.py file
-
 def migrate_database():
     """Add missing distance columns to existing table"""
     with engine.connect() as connection:
@@ -618,6 +616,53 @@ def migrate_database():
                 print("✅ Loved column added successfully!")
             except Exception as e:
                 print(f"Error adding loved column: {e}")
+
+        try:
+            connection.execute(db.text(f"SELECT notes FROM {TABLE_RN} LIMIT 1"))
+            print("Notes column already exists")
+        except Exception:
+            print("Adding missing notes column...")
+            try:
+                connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN notes TEXT DEFAULT ''"))
+                connection.commit()
+                print("✅ Notes column added successfully!")
+            except Exception as e:
+                print(f"Error adding notes column: {e}")
+
+
+def update_restaurant_notes(user_id, restaurant_name, restaurant_location, notes):
+    """Update the notes for a specific restaurant"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        connection.execute(
+            db.text(f"""
+                UPDATE {TABLE_RN} 
+                SET notes = :notes 
+                WHERE user_id = :uid AND name = :name AND location = :location
+            """),
+            {
+                "notes": notes, 
+                "uid": user_id, 
+                "name": restaurant_name, 
+                "location": restaurant_location
+            }
+        )
+        connection.commit()
+        return True
+
+def get_restaurant_notes(user_id, restaurant_name, restaurant_location):
+    """Get the current notes for a specific restaurant"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        result = connection.execute(
+            db.text(f"""
+                SELECT notes FROM {TABLE_RN} 
+                WHERE user_id = :uid AND name = :name AND location = :location
+            """),
+            {"uid": user_id, "name": restaurant_name, "location": restaurant_location}
+        ).fetchone()
+        
+        return result[0] if result else ""
 
 
 # CLI interface for the FoodiesRN module

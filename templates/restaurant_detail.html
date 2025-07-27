@@ -68,6 +68,68 @@
     </div>
   </div>
 
+  <div class="restaurant-notes">
+    <h3><i class="fas fa-sticky-note"></i> My Notes</h3>
+    
+    <!-- Display existing notes if they exist -->
+    {% if current_notes %}
+    <div class="current-notes-display" id="notesDisplay">
+      <div class="notes-content">
+        <p>{{ current_notes }}</p>
+      </div>
+      <div class="notes-actions">
+        <button onclick="editNotes()" class="edit-notes-btn">
+          <i class="fas fa-edit"></i> Edit Notes
+        </button>
+        <button onclick="deleteNotes()" class="delete-notes-btn">
+          <i class="fas fa-trash"></i> Delete Notes
+        </button>
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Notes editor (hidden by default if notes exist) -->
+    <div class="notes-editor" id="notesEditor" style="display: none;">
+      <textarea 
+        id="notesTextarea" 
+        placeholder="Add your personal notes about this restaurant...&#10;&#10;Examples:&#10;• Great pasta, ask for extra sauce&#10;• Too noisy for dates, better for groups&#10;• Parking available behind building&#10;• Service was slow but food excellent"
+        maxlength="500">{{ current_notes or '' }}</textarea>
+      
+      <div class="notes-actions">
+        <button onclick="saveNotes()" class="save-notes-btn">
+          <i class="fas fa-save"></i> Save Notes
+        </button>
+        {% if current_notes %}
+        <button onclick="cancelEdit()" class="cancel-notes-btn">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        {% endif %}
+      </div>
+      
+      <div class="character-count">
+        <span id="charCount">{{ current_notes|length if current_notes else 0 }}</span>/500 characters
+      </div>
+    </div>
+    
+    <!-- If no notes exist, show add button -->
+    {% if not current_notes %}
+    <div class="no-notes-state" id="noNotesState">
+      <p class="no-notes-text">
+        <i class="fas fa-lightbulb"></i> 
+        Keep track of your thoughts about this restaurant - favorite dishes, parking tips, atmosphere notes, or anything you want to remember for next time.
+      </p>
+      <button onclick="showNotesEditor()" class="add-notes-btn">
+        <i class="fas fa-plus"></i> Add Personal Notes
+      </button>
+    </div>
+    {% endif %}
+    
+    <!-- Loading/saving state -->
+    <div class="notes-status" id="notesStatus" style="display: none;">
+      <i class="fas fa-spinner fa-spin"></i> <span id="statusText">Saving...</span>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -96,6 +158,175 @@ function toggleLove(name, location, button) {
   .catch(error => {
     console.error('Error toggling love:', error);
   });
+}
+</script>
+
+<script>
+// Restaurant data for API calls
+const restaurantName = "{{ restaurant.name }}";
+const restaurantLocation = "{{ restaurant.location }}";
+
+// Initialize character counter on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('notesTextarea');
+    const charCount = document.getElementById('charCount');
+    
+    if (textarea && charCount) {
+        // Update character count on input
+        textarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = count;
+            
+            // Change color when approaching limit
+            if (count > 450) {
+                charCount.style.color = '#dc3545';
+            } else if (count > 400) {
+                charCount.style.color = '#fd7e14';
+            } else {
+                charCount.style.color = '#666';
+            }
+        });
+    }
+});
+
+function showNotesEditor() {
+    document.getElementById('noNotesState').style.display = 'none';
+    document.getElementById('notesEditor').style.display = 'block';
+    document.getElementById('notesTextarea').focus();
+}
+
+function editNotes() {
+    document.getElementById('notesDisplay').style.display = 'none';
+    document.getElementById('notesEditor').style.display = 'block';
+    document.getElementById('notesTextarea').focus();
+}
+
+function cancelEdit() {
+    // Reset textarea to original value
+    const textarea = document.getElementById('notesTextarea');
+    const originalNotes = "{{ current_notes or '' }}";
+    textarea.value = originalNotes;
+    
+    // Update character count
+    document.getElementById('charCount').textContent = originalNotes.length;
+    
+    // Show display, hide editor
+    document.getElementById('notesEditor').style.display = 'none';
+    
+    {% if current_notes %}
+    document.getElementById('notesDisplay').style.display = 'block';
+    {% else %}
+    document.getElementById('noNotesState').style.display = 'block';
+    {% endif %}
+}
+
+function saveNotes() {
+    const textarea = document.getElementById('notesTextarea');
+    const notes = textarea.value.trim();
+    
+    // Show saving status
+    showStatus('Saving...', true);
+    
+    fetch('/update_restaurant_notes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: restaurantName,
+            location: restaurantLocation,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStatus('Saved successfully!', false);
+            
+            // Update the page to show the new notes
+            if (notes.length > 0) {
+                updateNotesDisplay(notes);
+                document.getElementById('notesEditor').style.display = 'none';
+                document.getElementById('notesDisplay').style.display = 'block';
+                document.getElementById('noNotesState').style.display = 'none';
+            } else {
+                // If notes were cleared, show no notes state
+                document.getElementById('notesEditor').style.display = 'none';
+                document.getElementById('notesDisplay').style.display = 'none';
+                document.getElementById('noNotesState').style.display = 'block';
+            }
+            
+            // Hide status after 2 seconds
+            setTimeout(() => {
+                document.getElementById('notesStatus').style.display = 'none';
+            }, 2000);
+            
+        } else {
+            throw new Error(data.error || 'Failed to save notes');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving notes:', error);
+        showStatus('Error saving notes. Please try again.', false);
+        setTimeout(() => {
+            document.getElementById('notesStatus').style.display = 'none';
+        }, 3000);
+    });
+}
+
+function deleteNotes() {
+    if (confirm('Are you sure you want to delete your notes for this restaurant?')) {
+        // Clear the textarea and save
+        document.getElementById('notesTextarea').value = '';
+        saveNotes();
+    }
+}
+
+function updateNotesDisplay(notes) {
+    const notesContent = document.querySelector('.notes-content p');
+    if (notesContent) {
+        notesContent.textContent = notes;
+    } else {
+        // Create the notes display if it doesn't exist
+        const notesSection = document.querySelector('.restaurant-notes');
+        const notesDisplay = document.createElement('div');
+        notesDisplay.className = 'current-notes-display';
+        notesDisplay.id = 'notesDisplay';
+        notesDisplay.innerHTML = `
+            <div class="notes-content">
+                <p>${notes}</p>
+            </div>
+            <div class="notes-actions">
+                <button onclick="editNotes()" class="edit-notes-btn">
+                    <i class="fas fa-edit"></i> Edit Notes
+                </button>
+                <button onclick="deleteNotes()" class="delete-notes-btn">
+                    <i class="fas fa-trash"></i> Delete Notes
+                </button>
+            </div>
+        `;
+        
+        // Insert after the h3
+        const h3 = notesSection.querySelector('h3');
+        h3.parentNode.insertBefore(notesDisplay, h3.nextSibling);
+    }
+}
+
+function showStatus(message, isLoading) {
+    const statusDiv = document.getElementById('notesStatus');
+    const statusText = document.getElementById('statusText');
+    const spinner = statusDiv.querySelector('i');
+    
+    statusText.textContent = message;
+    statusDiv.style.display = 'block';
+    
+    if (isLoading) {
+        spinner.className = 'fas fa-spinner fa-spin';
+        statusDiv.style.color = '#ACB288';
+    } else {
+        spinner.className = 'fas fa-check';
+        statusDiv.style.color = '#28a745';
+    }
 }
 </script>
 

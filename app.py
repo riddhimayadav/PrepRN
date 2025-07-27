@@ -170,12 +170,17 @@ def restaurant_detail(restaurant_name, restaurant_location):
         flash("Restaurant not found.")
         return redirect(url_for("foodies"))
     
+    # Get current notes for this restaurant
+    from FoodiesRN.run_foodiesrn import get_restaurant_notes
+    current_notes = get_restaurant_notes(user_id, restaurant_name, restaurant_location)
+    
     # Create Google Maps search query for external link
     maps_query = f"{restaurant_name} {restaurant_location}"
     
     return render_template("restaurant_detail.html", 
                          restaurant=restaurant, 
-                         maps_query=maps_query)
+                         maps_query=maps_query,
+                         current_notes=current_notes)  # NEW: Pass notes to template
 
 
 # FoodiesRN route: search for restaurants based on preferences
@@ -357,6 +362,32 @@ def love_meal():
             meal_url
         )
         return {"loved": new_loved_status}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+@app.route("/update_restaurant_notes", methods=["POST"])
+def update_restaurant_notes_route():
+    if "user_id" not in session:
+        return {"error": "Not logged in"}, 401
+    
+    data = request.get_json()
+    restaurant_name = data.get("name")
+    restaurant_location = data.get("location")
+    notes = data.get("notes", "").strip()
+    
+    if not restaurant_name or not restaurant_location:
+        return {"error": "Missing restaurant data"}, 400
+    
+    try:
+        from FoodiesRN.run_foodiesrn import update_restaurant_notes
+        update_restaurant_notes(
+            session["user_id"], 
+            restaurant_name, 
+            restaurant_location,
+            notes
+        )
+        return {"success": True, "notes": notes}
     except Exception as e:
         return {"error": str(e)}, 500
 
