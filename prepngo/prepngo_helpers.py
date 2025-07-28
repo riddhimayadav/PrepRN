@@ -3,7 +3,7 @@ import requests
 import sqlite3
 import json
 from sqlalchemy import text
-
+import re
 from prepngo.PrepnGo import main as run_prepngo_main
 from prepngo.database_functions import (
     init_db,
@@ -25,28 +25,34 @@ if not SPOON_KEY:
 
 def get_prepngo_meals(user_input, user_id):
     """
-    1) Run your existing PrepnGo logic to get {"meals": [...], "stores": "..."}
-    2) For each meal, fetch full info from Spoonacular and
-       inject .ingredients and .instructions as Python lists.
+    Runs your PrepnGo logic, then enriches each meal with ingredients
+    & instructions by hitting Spoonacular’s /information endpoint.
+    If no explicit `id` field, we parse it from the source_url.
     """
     results = run_prepngo_main(user_input)
     meals   = results.get("meals", [])
 
     for m in meals:
-        # Spoonacular ID is under "id" (or sometimes "spoon_id")
+        # 1) try explicit id keys
         recipe_id = m.get("id") or m.get("spoon_id")
+
+        # 2) fallback: parse from URL, e.g. "…/recipe/W62QWGP6/…"
+        if not recipe_id and m.get("source_url"):
+            match = re.search(r"/recipe/([^/]+)/", m["source_url"])
+            if match:
+                recipe_id = match.group(1)
+
         if not recipe_id:
+            app.logger.warning(f"⚠️  No recipe_id for {m.get('title')}")
             m["ingredients"]  = []
             m["instructions"] = []
             continue
 
+        # 3) fetch full info
         try:
             resp = requests.get(
                 f"https://api.spoonacular.com/recipes/{recipe_id}/information",
-                params={
-                  "apiKey":            SPOON_KEY,
-                  "includeNutrition": False
-                },
+                params={"apiKey": SPOON_KEY, "includeNutrition": False},
                 timeout=10
             )
             resp.raise_for_status()
@@ -56,14 +62,12 @@ def get_prepngo_meals(user_input, user_id):
             m["instructions"] = []
             continue
 
-        # flatten ingredients
+        # 4) extract
         m["ingredients"] = [
-            ing["original"].strip()
+            ing.get("original","").strip()
             for ing in info.get("extendedIngredients", [])
             if ing.get("original")
         ]
-
-        # flatten each step
         steps = []
         for block in info.get("analyzedInstructions", []):
             for step in block.get("steps", []):

@@ -28,30 +28,30 @@
 
 <div class="detail-wrapper">
   <div class="detail-card">
-    <h3>Ingredients</h3>
-    {% if ingredients %}
-      <ul>
-        {% for item in ingredients %}
-          <li>{{ item }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p><em>No ingredients available.</em></p>
-    {% endif %}
-  </div>
+  <h3>Ingredients</h3>
+  {% if ingredients %}
+    <ul>
+      {% for ing in ingredients %}
+        <li>{{ ing }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p><em>No ingredients available.</em></p>
+  {% endif %}
+</div>
 
-  <div class="detail-card">
-    <h3>Step‑by‑step Instructions</h3>
-    {% if instructions %}
-      <ol>
-        {% for step in instructions %}
-          <li>{{ step }}</li>
-        {% endfor %}
-      </ol>
-    {% else %}
-      <p><em>No instructions available.</em></p>
-    {% endif %}
-  </div>
+<div class="detail-card">
+  <h3>Step-by-step Instructions</h3>
+  {% if instructions %}
+    <ol>
+      {% for step in instructions %}
+        <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p><em>No instructions available.</em></p>
+  {% endif %}
+</div>
 </div>
   <div class="restaurant-notes" style="margin-top:2rem;">
     <h3>My Notes</h3>

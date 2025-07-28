@@ -68,11 +68,11 @@
       <div class="input-group" id="pantry-group" style="display:none;">
         <label><i class="fas fa-boxes"></i> Pantry Items Available:</label>
         {% if pantry_items %}
-          <ul class="store-list">
-            {% for item in pantry_items %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
+      <ul class="pantry-list">
+        {% for item in pantry_items %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
         {% else %}
           <p><em>Your pantry is empty.</em></p>
         {% endif %}

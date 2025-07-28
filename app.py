@@ -307,32 +307,28 @@ def prep():
         return redirect(url_for("login_view"))
 
     user_id      = session["user_id"]
-    # always fetch dashboard settings
     restrictions = get_user_restrictions(user_id)
     pantry_items = get_pantry_items(user_id)
 
-    # ——— Form submission ———
+    # —— If the URL has ?clear=1, force‐clear old results —— 
+    if request.method == "GET" and request.args.get("clear"):
+        session.pop("prep_results", None)
+
+    # —— POST: handle form submission —— 
     if request.method == "POST":
-        grocery = request.form.get("grocery")
+        grocery = request.form.get("grocery")  # "yes" or "no"
         user_input = {
-            "location":  request.form.get("location", "").strip(),
-            "budget":    request.form.get("budget", "").strip(),
-            "servings":  request.form.get("servings", "").strip(),
+            "location":  request.form.get("location","").strip(),
+            "budget":    request.form.get("budget","").strip(),
+            "servings":  request.form.get("servings","").strip(),
             "diets":     restrictions,
-            "meal_type": request.form.get("meal_type", "").strip(),
+            "meal_type": request.form.get("meal_type","").strip(),
             "grocery":   grocery,
-            # if using pantry only, inject items from dashboard
-            "pantry":    [] if grocery == "yes" else pantry_items
+            # pantry branch when grocery == "no"
+            "pantry":    [] if grocery == "yes" else pantry_items,
         }
-        if request.method == "GET":
-            session.pop("prep_results", None)
-            return render_template(
-                "prep.html",
-                results=      None,
-                restrictions= restrictions,
-                pantry_items= pantry_items
-            )
-        # —— Basic validation —— 
+
+        # —— Validation —— 
         if not user_input["location"] or not user_input["servings"]:
             flash("Please enter both a location and number of servings.")
             return redirect(url_for("prep"))
@@ -340,18 +336,18 @@ def prep():
             flash("Please enter your budget for today’s meal.")
             return redirect(url_for("prep"))
 
-        # —— Run PrepnGo & store results —— 
-        start = time.time()
+        # —— Run PrepnGo & stash results —— 
+        start   = time.time()
         results = get_prepngo_meals(user_input, user_id)
         results["duration"] = f"{time.time() - start:.2f}"
 
         save_prepngo_results(results["meals"], user_input, user_id)
         session["prep_results"] = results
 
-        # do a redirect so our loading spinner + auto‑scroll work on the GET
+        # redirect to GET (without clearing!) so spinner + scroll work
         return redirect(url_for("prep"))
 
-    # ——— GET: show form + any existing results in session ———
+    # —— GET: just render the form *with* existing results (if any) —— 
     results = session.get("prep_results")
     return render_template(
         "prep.html",
@@ -359,20 +355,6 @@ def prep():
         restrictions= restrictions,
         pantry_items= pantry_items
     )
-
-
-# Display the results of the PrepnGo meal plan
-@app.route("/prep/results")
-def prep_results():
-    if "user_id" not in session:
-        return redirect(url_for("login_view"))
-
-    results = session.get("prep_results")
-    if not results:
-        flash("No meal plan generated yet.")
-        return redirect(url_for("prep"))
-
-    return render_template("prep_results.html", results=results)
 
 
 # Logout route: clears session data
@@ -411,24 +393,22 @@ def meal_detail(title):
         return redirect(url_for("login_view"))
     user_id = session["user_id"]
 
-    # pull the whole prepngo payload out of session
+    # pull the full PrepnGo results out of session
     results = session.get("prep_results", {}) or {}
-    meals = results.get("meals", [])
-    meal = next((m for m in meals if m["title"] == title), None)
-
+    meal = next((m for m in results.get("meals", []) if m["title"] == title), None)
     if not meal:
         flash("Recipe not found.", "warning")
         return redirect(url_for("prep"))
 
-    # grab the lists we injected
-    instructions  = meal.get("instructions", [])
-    ingredients   = meal.get("ingredients", [])
+    # they’re already simple lists now:
+    ingredients  = meal.get("ingredients", [])
+    instructions = meal.get("instructions", [])
     current_notes = get_meal_notes(user_id, title)
 
     return render_template("meal_detail.html",
         meal=meal,
-        instructions=instructions,
         ingredients=ingredients,
+        instructions=instructions,
         current_notes=current_notes
     )
 
