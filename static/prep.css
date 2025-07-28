@@ -1,4 +1,3 @@
-/* Re-use same green as Eat Out */
 :root {
   --primary-green: #ACB288;
 }
@@ -31,6 +30,7 @@
   display: flex;
   flex-direction: column;
 }
+/* Generic input‑group labels */
 .input-group label {
   background: var(--primary-green);
   color: white;
@@ -41,7 +41,51 @@
   align-items: center;
   gap: 0.5rem;
 }
-.input-group input,
+
+/* Only the header in the radio‑group stays green */
+.input-group.radio-group .radio-header {
+  background: var(--primary-green);
+  color: white;
+  padding: 0.8rem;
+  font-weight: 600;
+  border-radius: 10px;
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The two options get white card styling */
+.input-group.radio-group .radio-option {
+  background: white;
+  color: #333;
+  padding: 0.8rem;
+  border-radius: 0;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+  font-weight: normal;
+}
+
+/* Round only the bottom of the last option */
+.input-group.radio-group .radio-option:last-of-type {
+  border-radius: 0 0 10px 10px;
+  margin-bottom: 0;   /* no gap after last */
+}
+
+/* Hide the generic label styling inside radio-group */
+.input-group.radio-group label:not(.radio-header):not(.radio-option) {
+  background: none;
+  box-shadow: none;
+  color: inherit;     /* let .radio-option or .radio-header define its own */
+}
+
+/* only style text/number inputs & selects, NOT radios */
+.input-group input[type="text"],
+.input-group input[type="number"],
 .input-group select {
   font-family: inherit;
   color: #333;
@@ -51,6 +95,8 @@
   font-size: 1rem;
   background: white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Fieldset (diet checkboxes) */
@@ -209,4 +255,29 @@ ul.store-list li:hover {
   align-items: center;
   gap: 0.8rem;
   margin: 5px 0;
+}
+
+/* Questionnaire steps (if you’re using a multi‑step form)
+.step { 
+  display: none; 
+}
+#questionnaire-loading { 
+  font-style: italic; 
+  color: #555; 
+} */
+
+/* Center the questionnaire on the page */
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;    /* full viewport height */
+  padding: 2rem;        /* breathing room on small screens */
+  box-sizing: border-box;
+  background: #fafafa;  /* match your background */
+}
+
+.eatin-wrapper {
+  max-width: 480px;     /* reasonable width for your form */
+  width: 100%;
 }

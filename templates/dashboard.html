@@ -1,22 +1,120 @@
 {% extends "layout.html" %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+{% endblock %}
+
+
 {% block content %}
+<main class="dashboard">
 
-<!-- Link to custom dashboard CSS file -->
-<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <h1>Hi, {{ user|title }}</h1>
 
-<div class="dashboard-wrapper">
-  <div class="container">
-    <h2>Hey {{ username }}, What’s The Plan For Today?</h2>
+    <!-- Pantry Panel -->
+  <section class="dash-panel">
+    <h2>
+      What’s in My Pantry?
+      <button class="edit-btn" onclick="toggle('pantry-edit')">edit ▾</button>
+    </h2>
 
-    <!-- Form to navigate to the FoodiesRN 'Eat Out' feature -->
-    <form method="GET" action="{{ url_for('foodies') }}">
-        <button type="submit">🍽️ Eat Out</button>
-    </form>
+    {# display current pantry as a comma‑separated list #}
+    <p>
+      {% if pantry_items %}
+        {{ pantry_items|join(', ') }}
+      {% else %}
+        <em>No pantry items set.</em>
+      {% endif %}
+    </p>
 
-    <!-- Form to trigger PrepnGo 'Eat In' meal planner -->
-    <form method="POST" action="{{ url_for('prep') }}"> 
-        <button type="submit">🥗 Eat In</button> 
-    </form>
-  </div>
-</div>
+    {# when you click “edit” show one input for the whole list #}
+    <div id="pantry-edit" class="panel-edit" style="display:none">
+      <form method="POST">
+        <input type="hidden" name="action" value="update_pantry">
+        <label for="pantry_list">Enter items, separated by commas:</label><br>
+        <input
+          type="text"
+          id="pantry_list"
+          name="pantry_list"
+          placeholder="e.g. rice, eggs, tomato sauce"
+          required
+          style="width:100%; padding:0.5rem; margin-top:0.5rem;"
+          value="{{ pantry_items|join(', ') }}"
+        >
+        <button type="submit" style="margin-top:0.5rem;">Save</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Restrictions Panel -->
+  <section class="dash-panel">
+    <h2>
+      Dietary Restrictions
+      <button class="edit-btn" onclick="toggle('restrict-edit')">edit ▴</button>
+    </h2>
+    <ul class="restrict-list">
+      {% for r in restrictions %}
+      <li>{{ r }}</li>
+      {% else %}
+      <p><em>No restrictions set.</em></p>
+      {% endfor %}
+    </ul>
+    <div id="restrict-edit" class="panel-edit" style="display:none">
+      <form method="POST">
+        <input type="hidden" name="action" value="update_restrictions">
+        {% for d in [
+          'vegan','vegetarian','pescetarian','gluten free',
+          'grain free','dairy free','high protein','kosher',
+          'whole 30','low sodium','low carb','paleo',
+          'ketogenic','fodmap','primal'
+        ] %}
+          <label>
+            <input type="checkbox" name="diet" value="{{ d }}"
+              {% if d in restrictions %}checked{% endif %}>
+            {{ d }}
+          </label>
+        {% endfor %}
+        <button type="submit">Save</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- This Week’s Activity -->
+  <section class="dash-panel activity">
+    <h2>This Week’s Activity</h2>
+    <div class="activity-grid">
+      <!-- Recipes Liked -->
+      <div>
+        <h3>Recipes Liked</h3>
+        {% if liked_recipes %}
+          <ul>
+            {% for rec in liked_recipes %}
+              <li>{{ rec[0] }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><em>No recipes liked yet.</em></p>
+        {% endif %}
+      </div>
+      <!-- Restaurants Liked -->
+      <div>
+        <h3>Restaurants Liked</h3>
+        {% if liked_restaurants %}
+        <ul>
+          {% for r in liked_restaurants %}
+            <li>{{ r.name }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <p><em>No restaurants liked yet.</em></p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  function toggle(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
 {% endblock %}

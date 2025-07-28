@@ -21,6 +21,16 @@
         <button type="submit">🥗 Eat In</button>
       </form>
     </div>
+
+    <p>
+      Click on dashboard to view your weekly activity and optionally edit your digital pantry, dietary restrictions, and weekly budget.
+    </p>
+    <div class="button-row" style="margin-top:1.5rem;">
+      <form method="GET" action="{{ url_for('dashboard') }}">
+        <button type="submit">☰ Dashboard</button>
+      </form>
+    </div>
+
   </div>
 </div>
 

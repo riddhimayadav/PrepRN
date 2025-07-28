@@ -6,14 +6,25 @@ from FoodiesRN.run_foodiesrn import *
 from forms import LoginForm, SignupForm
 from shared.auth import login
 from prepngo.PrepnGo import main as run_prepngo_meals
-from shared.prepngo_helpers import *
+from prepngo.prepngo_helpers import *
 from dotenv import load_dotenv
 import time
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 import urllib.parse
 from prepngo.database_functions import init_db
 
-
+# helper for dashboard
+from shared.pantry import (
+    init_pantry_db,
+    get_pantry_items,
+    add_pantry_item,
+    remove_pantry_item,
+)
+from shared.profile  import (
+    get_user_restrictions, set_user_restrictions,
+)
+from shared.activity import get_recent_liked_restaurants
+from prepngo.prepngo_helpers import get_loved_meals
 # Load environment variables
 load_dotenv()
 
@@ -31,7 +42,7 @@ params = {
 create_user_table()
 create_foodiesrn_table()
 migrate_database()
-
+init_pantry_db()
 
 # Home route redirects to login page
 @app.route("/")
@@ -81,12 +92,57 @@ def login_view():
 
 
 # Dashboard route: visible only after login
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    if "username" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login_view"))
-    session.pop('foodies_results', None)
-    return render_template("dashboard.html", username=session["username"])
+
+    user_id = session["user_id"]
+    username = session["username"]
+
+    if request.method == "POST":
+        action = request.form.get("action")
+
+        # NEW: handle the comma‑sep pantry update
+        if action == "update_pantry":
+            # first remove everything
+            for old in get_pantry_items(user_id):
+                remove_pantry_item(user_id, old)
+            # then add each new, trimmed item
+            raw = request.form["pantry_list"]
+            for itm in [i.strip() for i in raw.split(",") if i.strip()]:
+                add_pantry_item(user_id, itm)
+
+        elif action == "update_restrictions":
+            set_user_restrictions(user_id, request.form.getlist("diet"))
+
+        elif action == "update_budget":
+            set_weekly_budget(user_id, float(request.form["budget"]))
+            set_daily_allocation(
+              user_id,
+              float(request.form["daily_percent"]) / 100.0
+            )
+
+        return redirect(url_for("dashboard"))
+
+    # on GET just load whatever’s in the DB now
+    pantry_items     = get_pantry_items(user_id)
+    restrictions     = get_user_restrictions(user_id)
+    # weekly_budget    = get_weekly_budget(user_id)
+    # daily_percent    = get_daily_allocation(user_id)
+    liked_recipes     = get_loved_meals(user_id)
+    liked_restaurants= get_recent_liked_restaurants(user_id, 7)
+
+    return render_template(
+      "dashboard.html",
+      user=username,
+      pantry_items=pantry_items,
+      restrictions=restrictions,
+    #   weekly_budget=weekly_budget,
+    #   daily_percent=daily_percent,
+      liked_recipes=liked_recipes,
+      liked_restaurants=liked_restaurants
+    )
 
 
 # View saved recommendations from both FoodiesRN and PrepnGo
@@ -248,53 +304,51 @@ def prep():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
 
-    #drop any previous results
-    if request.method == "GET":
-        session.pop("prep_results", None)
-        results = None
+    user_id      = session["user_id"]
+    restrictions = get_user_restrictions(user_id)
+    pantry_items = get_pantry_items(user_id)
 
-    #generate & save new results
-    else:
+    if request.method == "POST":
+        # build payload
+        grocery = request.form.get("grocery")
         user_input = {
-            "location": request.form.get("location"),
-            "budget":   request.form.get("budget"),
-            "servings": request.form.get("servings"),
-            "diets":    request.form.getlist("diet"),
+            "location":  request.form.get("location", "").strip(),
+            "budget":    request.form.get("budget", "").strip(),
+            "servings":  request.form.get("servings", "").strip(),
+            "diets":     restrictions,
             "meal_type": request.form.get("meal_type", "").strip(),
-            "pantry": [item.strip().lower() for item in request.form.get("pantry", "").split(",") if item.strip()],
-            "grocery": request.form.get("grocery")  # 'yes' or 'no'
+            "grocery":   grocery,
+            "pantry":    [] if grocery == "yes" else pantry_items
         }
 
-        if not (user_input["location"] and user_input["budget"] and user_input["servings"]):
-            flash("Please fill out all fields.")
+        # validation
+        if not user_input["location"] or not user_input["servings"]:
+            flash("Please enter both a location and number of servings.")
+            return redirect(url_for("prep"))
+        if grocery == "yes" and not user_input["budget"]:
+            flash("Please enter your budget for today’s meal.")
             return redirect(url_for("prep"))
 
-        start = time.time()
-        results = get_prepngo_meals(user_input, session["user_id"])
-        # measure end‑to‑end
-        results["duration"] = f"{(time.time() - start):.2f}"
+        # run PrepnGo
+        start   = time.time()
+        results = get_prepngo_meals(user_input, user_id)
+        results["duration"] = f"{time.time() - start:.2f}"
 
-        save_prepngo_results(results["meals"], user_input, session["user_id"])
-
-        # Check loved status for each meal after saving to database
-        conn = init_db('preprn.db')
-        for meal in results["meals"]:
-            cur = conn.cursor()
-            cur.execute('''
-                SELECT meals.loved
-                FROM meals
-                JOIN requests ON meals.request_id = requests.id
-                WHERE requests.user_id = ? AND meals.title = ? AND meals.source_url = ?
-                ORDER BY meals.id DESC
-                LIMIT 1
-            ''', (session["user_id"], meal['title'], meal['source_url']))
-            
-            loved_result = cur.fetchone()
-            meal['loved'] = bool(loved_result[0]) if loved_result else False
-
-        conn.close()
+        save_prepngo_results(results["meals"], user_input, user_id)
         session["prep_results"] = results
-    return render_template("prep.html", results=session.get("prep_results"))
+
+        # redirect back so our loading + scroll logic works on GET
+        return redirect(url_for("prep"))
+
+    # —— GET ——  
+    # just render with whatever's in session (possibly None)
+    results = session.get("prep_results")
+    return render_template(
+        "prep.html",
+        results=       results,
+        restrictions=  restrictions,
+        pantry_items=  pantry_items
+    )
 
 
 # Display the results of the PrepnGo meal plan
