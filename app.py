@@ -311,11 +311,6 @@ def prep():
     restrictions = get_user_restrictions(user_id)
     pantry_items = get_pantry_items(user_id)
 
-    # ——— Optional “clear old results” hook ———
-    # if you navigate here with ?clear=1 we’ll drop old session data
-    if request.method == "GET" and request.args.get("clear"):
-        session.pop("prep_results", None)
-
     # ——— Form submission ———
     if request.method == "POST":
         grocery = request.form.get("grocery")
@@ -329,7 +324,14 @@ def prep():
             # if using pantry only, inject items from dashboard
             "pantry":    [] if grocery == "yes" else pantry_items
         }
-
+        if request.method == "GET":
+            session.pop("prep_results", None)
+            return render_template(
+                "prep.html",
+                results=      None,
+                restrictions= restrictions,
+                pantry_items= pantry_items
+            )
         # —— Basic validation —— 
         if not user_input["location"] or not user_input["servings"]:
             flash("Please enter both a location and number of servings.")
@@ -409,17 +411,18 @@ def meal_detail(title):
         return redirect(url_for("login_view"))
     user_id = session["user_id"]
 
-    # grab the full prep_results from session
-    results = session.get("prep_results", {})
+    # pull the whole prepngo payload out of session
+    results = session.get("prep_results", {}) or {}
     meals = results.get("meals", [])
     meal = next((m for m in meals if m["title"] == title), None)
+
     if not meal:
         flash("Recipe not found.", "warning")
         return redirect(url_for("prep"))
 
-    # parse JSON fields if you stored them as JSON strings
-    instructions = json.loads(meal.get("instructions", "[]"))
-    ingredients  = json.loads(meal.get("ingredients",  "[]"))
+    # grab the lists we injected
+    instructions  = meal.get("instructions", [])
+    ingredients   = meal.get("ingredients", [])
     current_notes = get_meal_notes(user_id, title)
 
     return render_template("meal_detail.html",
@@ -503,14 +506,16 @@ def update_restaurant_notes_route():
         return {"error": str(e)}, 500
 
 
-# Start the Flask app
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
-
 @app.route("/update_meal_notes", methods=["POST"])
 def update_meal_notes_route():
     if "user_id" not in session:
         return {"error":"Not logged in"}, 401
     data = request.get_json()
-    success = update_meal_notes(session["user_id"], data["title"], data["notes"])
+    title = data.get("title")
+    notes = data.get("notes", "").strip()
+    success = update_meal_notes(session["user_id"], title, notes)
     return {"success": success}
+
+# Start the Flask app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)

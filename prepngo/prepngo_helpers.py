@@ -1,74 +1,100 @@
-# Import SQLite and internal PrepnGo modules
+import os
+import requests
 import sqlite3
-from prepngo.PrepnGo import main as run_prepngo_main
-from prepngo.database_functions import *
-from FoodiesRN.run_foodiesrn import engine
+import json
 from sqlalchemy import text
 
+from prepngo.PrepnGo import main as run_prepngo_main
+from prepngo.database_functions import (
+    init_db,
+    save_request,
+    save_meals,
+    get_saved_meals,
+    clear_loved_meals_db as clear_loved_db,
+    clear_meals,
+    toggle_meal_love_status,
+    get_user_loved_meals,
+)
+from FoodiesRN.run_foodiesrn import engine
 
-# Run the PrepnGo meal planner and return the meal results
+
+# Make sure your SPOON_API_KEY is loaded into the env
+SPOON_KEY = os.getenv("SPOON_API_KEY")
+if not SPOON_KEY:
+    raise RuntimeError("SPOON_API_KEY not set in environment")
 
 def get_prepngo_meals(user_input, user_id):
+    """
+    1) Run your existing PrepnGo logic to get {"meals": [...], "stores": "..."}
+    2) For each meal, fetch full info from Spoonacular and
+       inject .ingredients and .instructions as Python lists.
+    """
     results = run_prepngo_main(user_input)
     meals   = results.get("meals", [])
 
     for m in meals:
-        # --- locate the recipe ID ---
-        # adjust this if your meal dict uses a different key
+        # Spoonacular ID is under "id" (or sometimes "spoon_id")
         recipe_id = m.get("id") or m.get("spoon_id")
         if not recipe_id:
-            # if you encoded the ID in the URL, you could parse it out:
-            #   recipe_id = extract_from(m.get("source_url"))
             m["ingredients"]  = []
             m["instructions"] = []
             continue
 
-        # --- fetch the full recipe information ---
-        info = requests.get(
-            f"https://api.spoonacular.com/recipes/{recipe_id}/information",
-            params={"apiKey": SPOON_KEY, "includeNutrition": False}
-        ).json()
+        try:
+            resp = requests.get(
+                f"https://api.spoonacular.com/recipes/{recipe_id}/information",
+                params={
+                  "apiKey":            SPOON_KEY,
+                  "includeNutrition": False
+                },
+                timeout=10
+            )
+            resp.raise_for_status()
+            info = resp.json()
+        except Exception:
+            m["ingredients"]  = []
+            m["instructions"] = []
+            continue
 
-        # pull ingredient lines
+        # flatten ingredients
         m["ingredients"] = [
-            ing.get("original", "").strip()
+            ing["original"].strip()
             for ing in info.get("extendedIngredients", [])
+            if ing.get("original")
         ]
 
-        # pull step‑by‑step instructions
-        instr = []
+        # flatten each step
+        steps = []
         for block in info.get("analyzedInstructions", []):
             for step in block.get("steps", []):
-                text = step.get("step", "").strip()
-                if text:
-                    instr.append(text)
-        m["instructions"] = instr
+                txt = step.get("step","").strip()
+                if txt:
+                    steps.append(txt)
+        m["instructions"] = steps
 
     results["meals"] = meals
     return results
 
-
-
-# Save meal results and associated request data into the database
 def save_prepngo_results(meals, user_input, user_id):
+    """
+    If you still want to persist to your DB, you must serialize
+    the Python lists back to JSON strings before saving.
+    (But note: your session already has the real lists.)
+    """
+    # make sure your table has the needed columns
     migrate_meals_notes_table()
 
+    # serialize before saving
     for m in meals:
-        # build step list
-        instr_blocks = m.get("analyzedInstructions", [])
-        steps = [s["step"]
-                 for b in instr_blocks
-                 for s in b.get("steps", [])]
-        m["instructions"] = json.dumps(steps)
+        m["user_id"]      = user_id
+        m["ingredients"]  = json.dumps(m.get("ingredients", []))
+        m["instructions"] = json.dumps(m.get("instructions", []))
 
-        # build ingredients list
-        ingr = m.get("extendedIngredients", [])
-        m["ingredients"] = json.dumps([i["original"] for i in ingr])
-
-        m["user_id"] = user_id
-
-    conn = init_db('preprn.db')
-    req_id = save_request(...)
+    conn  = init_db("preprn.db")
+    req_id= save_request(conn, user_id,
+                         float(user_input.get("budget", 0)),
+                         int(user_input.get("servings", 1)),
+                         user_input.get("diets", []))
     save_meals(conn, req_id, meals)
     conn.close()
 
@@ -137,6 +163,7 @@ def update_meal_notes(user_id, title, notes):
              WHERE user_id = :uid AND title = :title
         """), {"notes": notes, "uid": user_id, "title": title})
         conn.commit()
+    return True
 
 def get_meal_notes(user_id, title):
     migrate_meals_notes_table()

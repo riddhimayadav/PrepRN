@@ -15,7 +15,7 @@
     <div class="restaurant-details">
       <h1>{{ meal.title }}</h1>
       <div class="rating-price-cuisine-vibe">
-        <span class="price">💰 ${{ "%.2f"|format(meal.price) }}</span>
+        <span class="price">💰 About ${{ "%.2f"|format(meal.price) }} per serving</span>
       </div>
       <p>{{ meal.summary }}</p>
       <div class="action-buttons">
@@ -26,33 +26,33 @@
     </div>
   </div>
 
-<div class="detail‑wrapper">
-    <div class="detail‑card">
+<div class="detail-wrapper">
+  <div class="detail-card">
     <h3>Ingredients</h3>
     {% if ingredients %}
       <ul>
-        {% for ing in ingredients %}
-          <li>{{ ing }}</li>
+        {% for item in ingredients %}
+          <li>{{ item }}</li>
         {% endfor %}
       </ul>
     {% else %}
       <p><em>No ingredients available.</em></p>
     {% endif %}
   </div>
-    <div class="detail‑card">
-        <h3>Step‑by‑step Instructions</h3>
-        {% if instructions %}
-        <ol>
-            {% for step in instructions %}
-            <li>{{ step }}</li>
-            {% endfor %}
-        </ol>
-        {% else %}
-        <p><em>No instructions available.</em></p>
-        {% endif %}
-    </div>
-</div>
 
+  <div class="detail-card">
+    <h3>Step‑by‑step Instructions</h3>
+    {% if instructions %}
+      <ol>
+        {% for step in instructions %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p><em>No instructions available.</em></p>
+    {% endif %}
+  </div>
+</div>
   <div class="restaurant-notes" style="margin-top:2rem;">
     <h3>My Notes</h3>
     <div class="current-notes-display" style="margin-bottom:1rem;">
