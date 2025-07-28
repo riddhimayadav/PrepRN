@@ -1,5 +1,5 @@
 import unittest
-from app import app
+from PrepRN.app import app
 class TestPrepRNFlaskApp(unittest.TestCase):
     def setUp(self):
         # Configure test client
