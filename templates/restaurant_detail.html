@@ -24,7 +24,9 @@
           <span class="price">{{ restaurant.price }}</span>
           <span class="price">{{ restaurant.cuisine }}</span>
           <span class="price">{{ restaurant.vibe }}</span>
-          <button class="heart-btn-inline" onclick="toggleLove('{{ restaurant.name }}', '{{ restaurant.location }}', this)">
+          <button class="heart-btn-inline" 
+            data-name="{{ restaurant.name }}"
+            data-location="{{ restaurant.location }}">
             {% if restaurant.loved %}
             <i class="fas fa-heart" style="color: red;"></i>
             {% else %}

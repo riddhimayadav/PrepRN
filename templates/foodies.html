@@ -108,7 +108,9 @@
         <div class="rating-price-inline">
           <span class="rating">⭐ {{ r.rating }}</span>
           <span class="price">💲{{ r.price }}</span>
-          <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+          <button class="heart-btn-inline" 
+                  data-name="{{ r.name }}"
+                  data-location="{{ r.location }}">
             {% if r.loved %}
             <i class="fas fa-heart" style="color: red;"></i>
             {% else %}
@@ -294,5 +296,6 @@ function toggleLove(name, location, button) {
   });
 }
 </script>
+
 
 {% endblock %}

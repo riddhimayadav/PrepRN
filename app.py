@@ -12,6 +12,7 @@ import time
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 import urllib.parse
 from prepngo.database_functions import init_db
+from flask import jsonify
 
 # helper for dashboard
 from shared.pantry import (
@@ -428,6 +429,30 @@ def meal_detail(title):
        shopping_list=shopping_list,
        current_notes=current_notes
     )
+
+
+@app.route("/get_loved_restaurants")
+def get_loved_restaurants_route():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user_id = session["user_id"]
+    loved_restaurants = get_loved_restaurants(user_id)
+
+    # Format into list of dicts for frontend
+    formatted = [
+        {
+            "name": r[0],
+            "location": r[1],
+            "rating": r[2],
+            "price": r[3],
+            "url": r[4],
+            "image_url": r[5],
+        }
+        for r in loved_restaurants
+    ]
+    return jsonify({"restaurants": formatted})
+
 
 # AJAX route to toggle meal love status
 @app.route("/love_meal", methods=["POST"])

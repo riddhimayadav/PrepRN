@@ -17,7 +17,7 @@
     <!-- Sub-tabs for restaurants -->
     <div class="sub-tab-buttons">
         <button class="sub-tab-button active" onclick="showSubTab('foodies', 'search-history')">Search History</button>
-        <button class="sub-tab-button" onclick="showSubTab('foodies', 'loved')">Loved</button>
+        <button class="sub-tab-button" onclick="showSubTab('foodies', 'loved')">Liked</button>
     </div>
 
     <!-- Search History Sub-tab -->
@@ -43,7 +43,9 @@
                 <div class="rating-price-inline">
                     <span class="rating">⭐ {{ r.rating }}</span>
                     <span class="price">💲{{ r.price }}</span>
-                    <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+                    <button class="heart-btn-inline" 
+                        data-name="{{ r.name }}"
+                        data-location="{{ r.location }}">
                         {% if r.loved %}
                         <i class="fas fa-heart" style="color: red;"></i>
                         {% else %}
@@ -81,7 +83,7 @@
       <div class="section-header">
         <!-- Button to clear all loved restaurants -->
         <form method="POST" action="{{ url_for('clear_loved_restaurants') }}">
-          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved restaurants?')">Clear All Loved Restaurants</button>
+          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved restaurants?')">Clear All Liked Restaurants</button>
         </form>
       </div>
       {% if loved_restaurants %}
@@ -97,7 +99,9 @@
                 <div class="rating-price-inline">
                   <span class="rating">⭐ {{ r.rating }}</span>
                   <span class="price">💲{{ r.price }}</span>
-                  <button class="heart-btn-inline" onclick="toggleLove('{{ r.name }}', '{{ r.location }}', this)">
+                  <button class="heart-btn-inline" 
+                    data-name="{{ r.name }}"
+                    data-location="{{ r.location }}">
                     <i class="fas fa-heart" style="color: red;"></i>
                   </button>
                 </div>
@@ -131,7 +135,7 @@
   <!-- Sub-tabs for meals -->
   <div class="sub-tab-buttons">
     <button class="sub-tab-button active" onclick="showSubTab('prep', 'search-history')">Search History</button>
-    <button class="sub-tab-button" onclick="showSubTab('prep', 'loved')">Loved</button>
+    <button class="sub-tab-button" onclick="showSubTab('prep', 'loved')">Liked</button>
   </div>
 
   <!-- Meal Search History Sub-tab -->
@@ -180,7 +184,7 @@
       <div class="section-header">
         <!-- Button to clear all loved meals -->
         <form method="POST" action="{{ url_for('clear_loved_meals') }}">
-          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved meals?')">Clear All Loved Meals</button>
+          <button type="submit" onclick="return confirm('Are you sure you want to clear all loved meals?')">Clear All Liked Meals</button>
         </form>
       </div>
       {% if loved_meals %}
@@ -204,166 +208,215 @@
           {% endfor %}
         </div>
       {% else %}
-        <p>No loved meals yet. ❤️ Heart some meals to see them here!</p>
+        <p>No liked meals yet. ❤️ Heart some meals to see them here!</p>
       {% endif %}
     </div>
   </div>
 </div>
 
   <!-- Functions to toggle between main tabs and sub-tabs -->
-    <script>
-    function showMainTab(tabId) {
-        // Hide all main tab content sections
-        document.querySelectorAll('.main-tab-content').forEach(el => el.style.display = 'none');
-        // Show selected main tab
-        document.getElementById(tabId).style.display = 'block';
+<script>
+function showMainTab(tabId) {
+    // Hide all main tab content sections
+    document.querySelectorAll('.main-tab-content').forEach(el => el.style.display = 'none');
+    // Show selected main tab
+    document.getElementById(tabId).style.display = 'block';
 
-        // Update main tab button styles
-        document.querySelectorAll('.main-tab-button').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+    // Update main tab button styles
+    document.querySelectorAll('.main-tab-button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function showSubTab(mainTab, subTab) {
+    document.querySelectorAll(`#${mainTab} .sub-tab-content`).forEach(el => el.style.display = 'none');
+    document.getElementById(`${mainTab}-${subTab}`).style.display = 'block';
+
+    document.querySelectorAll(`#${mainTab} .sub-tab-button`).forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Reload the liked tab when switching to it
+    if (mainTab === 'foodies' && subTab === 'loved') {
+        reloadLovedTab();
     }
+}
 
-    function showSubTab(mainTab, subTab) {
-        // Hide all sub-tab content within the main tab
-        document.querySelectorAll(`#${mainTab} .sub-tab-content`).forEach(el => el.style.display = 'none');
-        // Show selected sub-tab
-        document.getElementById(`${mainTab}-${subTab}`).style.display = 'block';
 
-        // Update sub-tab button styles within the main tab
-        document.querySelectorAll(`#${mainTab} .sub-tab-button`).forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+// Event delegation for all heart buttons - this handles both original and cloned buttons
+document.addEventListener('click', function(e) {
+    // Handle restaurant love buttons
+    if (e.target.closest('.heart-btn-inline')) {
+        e.preventDefault();
+        const button = e.target.closest('.heart-btn-inline');
+        const name = button.getAttribute('data-name');
+        const location = button.getAttribute('data-location');
+        
+        if (name && location) {
+            toggleRestaurantLove(name, location, button);
+        }
     }
+});
 
-    // Toggle love status for restaurants
-    function toggleLove(name, location, button) {
-        fetch('/love_restaurant', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                location: location
-            })
-        })
+function toggleRestaurantLove(name, location, button) {
+    console.log('Toggling love for:', name, 'at', location);
+    
+    // Visual feedback
+    button.style.opacity = '0.5';
+    button.disabled = true;
+    
+    fetch('/love_restaurant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, location: location })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        
+        // Update ALL heart buttons for this restaurant across the entire page
+        updateAllRestaurantHearts(name, location, data.loved);
+        
+        // Handle loved tab synchronization
+        reloadLovedTab();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update favorite. Please try again.');
+    })
+    .finally(() => {
+        button.style.opacity = '1';
+        button.disabled = false;
+    });
+}
+
+function updateAllRestaurantHearts(name, location, isLoved) {
+    // Find all heart buttons for this restaurant
+    const allHeartButtons = document.querySelectorAll('.heart-btn-inline');
+    
+    allHeartButtons.forEach(heartBtn => {
+        const btnName = heartBtn.getAttribute('data-name');
+        const btnLocation = heartBtn.getAttribute('data-location');
+        
+        if (btnName === name && btnLocation === location) {
+            if (isLoved) {
+                heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+            } else {
+                heartBtn.innerHTML = '<i class="far fa-heart"></i>';
+            }
+        }
+    });
+}
+
+function reloadLovedTab() {
+    const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
+    lovedTabContainer.innerHTML = "<p>Loading...</p>"; // optional loading state
+
+    fetch('/get_loved_restaurants')
         .then(response => response.json())
         .then(data => {
-            // Update ALL heart buttons for this restaurant across both tabs
-            const allCards = document.querySelectorAll('.card');
-            allCards.forEach(card => {
-                const nameElem = card.querySelector('strong');
-                const locationElem = card.querySelector('.location');
-                const heartBtn = card.querySelector('.heart-btn-inline');
+            lovedTabContainer.innerHTML = ''; // clear current cards
 
-                if (nameElem?.textContent === name && locationElem?.textContent.includes(location) && heartBtn) {
-                    if (data.loved) {
-                        // Restaurant is now loved - fill the heart
-                        heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
-                    } else {
-                        // Restaurant is no longer loved - empty the heart
-                        heartBtn.innerHTML = '<i class="far fa-heart"></i>';
-                    }
-                }
-            });
-
-            if (data.loved) {
-                const originalCard = button.closest('.card');
-                const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
-
-                // Check if a clone of this card is already in the loved tab
-                const alreadyExists = Array.from(lovedTabContainer.children).some(card =>
-                    card.querySelector("strong")?.textContent === name &&
-                    card.querySelector(".location")?.textContent.includes(location)
-                );
-
-                if (!alreadyExists) {
-                    // Clone the card and add it to the loved tab
-                    const clonedCard = originalCard.cloneNode(true);
-                    lovedTabContainer.appendChild(clonedCard);
-                }
-            } else {
-                // Remove from loved tab
-                const lovedTabContainer = document.getElementById('foodies-loved').querySelector('.card-container');
-                const cards = lovedTabContainer.querySelectorAll('.card');
-
-                cards.forEach(card => {
-                    const nameElem = card.querySelector('strong');
-                    const locationElem = card.querySelector('.location');
-
-                    if (nameElem?.textContent === name && locationElem?.textContent.includes(location)) {
-                        lovedTabContainer.removeChild(card);
-                    }
-                });
+            if (!data.restaurants || data.restaurants.length === 0) {
+                lovedTabContainer.innerHTML = "<p>No loved restaurants yet. ❤️ Heart some restaurants to see them here!</p>";
+                return;
             }
+
+            data.restaurants.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'card restaurant-card';
+                card.innerHTML = `
+                  <img src="${r.image_url}" alt="Restaurant Image" class="card-img"
+                    onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
+                  <div class="card-content">
+                    <strong>${r.name}</strong><br>
+                    <span class="location"><i class="fas fa-map-marker-alt"></i> ${r.location}</span><br>
+                    <div class="rating-price-inline">
+                        <span class="rating">⭐ ${r.rating}</span>
+                        <span class="price">💲${r.price}</span>
+                        <button class="heart-btn-inline" data-name="${r.name}" data-location="${r.location}">
+                            <i class="fas fa-heart" style="color: red;"></i>
+                        </button>
+                    </div>
+                    <div class="restaurant-actions">
+                        <a href="/restaurant/${encodeURIComponent(r.name)}/${encodeURIComponent(r.location)}" class="details-btn">
+                          <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + r.location)}" target="_blank" class="details-btn">
+                          <i class="fas fa-map-marker-alt"></i> Maps
+                        </a>
+                        <a href="${r.url}" target="_blank" class="details-btn">
+                          <i class="fab fa-yelp"></i> Yelp
+                        </a>
+                    </div>
+                  </div>
+                `;
+                lovedTabContainer.appendChild(card);
+            });
         })
         .catch(error => {
-            console.error('Error toggling love:', error);
+            lovedTabContainer.innerHTML = "<p>Error loading liked restaurants.</p>";
+            console.error('Error fetching loved tab data:', error);
         });
-    }
+}
 
-    // Toggle love status for meals
-    function toggleMealLove(name, url, button) {
-        fetch('/love_meal', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                url: url
-            })
+
+// Keep the meal love function as is for now
+function toggleMealLove(name, url, button) {
+    fetch('/love_meal', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            url: url
         })
-        .then(response => response.json())
-        .then(data => {
-            // Update ALL heart buttons for this meal across both tabs
-            const allMealCards = document.querySelectorAll('.meal-card');
-            allMealCards.forEach(card => {
-                const cardName = card.getAttribute('data-meal-name');
-                const cardUrl = card.getAttribute('data-meal-url');
-                const heartBtn = card.querySelector('.heart-btn');
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update ALL heart buttons for this meal across both tabs
+        const allMealCards = document.querySelectorAll('.meal-card');
+        allMealCards.forEach(card => {
+            const cardName = card.getAttribute('data-meal-name');
+            const cardUrl = card.getAttribute('data-meal-url');
+            const heartBtn = card.querySelector('.heart-btn');
 
-                if (cardName === name && cardUrl === url && heartBtn) {
-                    if (data.loved) {
-                        // Meal is now loved - fill the heart
-                        heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
-                    } else {
-                        // Meal is no longer loved - empty the heart
-                        heartBtn.innerHTML = '<i class="far fa-heart"></i>';
-                    }
+            if (cardName === name && cardUrl === url && heartBtn) {
+                if (data.loved) {
+                    heartBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+                } else {
+                    heartBtn.innerHTML = '<i class="far fa-heart"></i>';
+                }
+            }
+        });
+
+        // Handle loved meals tab
+        const lovedTabContainer = document.getElementById('prep-loved').querySelector('.card-container');
+        
+        if (data.loved) {
+            const originalCard = button.closest('.card');
+            const alreadyExists = Array.from(lovedTabContainer.children).some(card =>
+                card.getAttribute('data-meal-name') === name &&
+                card.getAttribute('data-meal-url') === url
+            );
+
+            if (!alreadyExists) {
+                const clonedCard = originalCard.cloneNode(true);
+                lovedTabContainer.appendChild(clonedCard);
+            }
+        } else {
+            const cards = lovedTabContainer.querySelectorAll('.meal-card');
+            cards.forEach(card => {
+                if (card.getAttribute('data-meal-name') === name && 
+                    card.getAttribute('data-meal-url') === url) {
+                    lovedTabContainer.removeChild(card);
                 }
             });
-
-            // Handle loved meals tab
-            const lovedTabContainer = document.getElementById('prep-loved').querySelector('.card-container');
-            
-            if (data.loved) {
-                // Add to loved tab if not already there
-                const originalCard = button.closest('.card');
-                const alreadyExists = Array.from(lovedTabContainer.children).some(card =>
-                    card.getAttribute('data-meal-name') === name &&
-                    card.getAttribute('data-meal-url') === url
-                );
-
-                if (!alreadyExists) {
-                    const clonedCard = originalCard.cloneNode(true);
-                    lovedTabContainer.appendChild(clonedCard);
-                }
-            } else {
-                // Remove from loved tab
-                const cards = lovedTabContainer.querySelectorAll('.meal-card');
-                cards.forEach(card => {
-                    if (card.getAttribute('data-meal-name') === name && 
-                        card.getAttribute('data-meal-url') === url) {
-                        lovedTabContainer.removeChild(card);
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error toggling meal love:', error);
-        });
-    }
-
-    </script>
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling meal love:', error);
+    });
+}
+</script>
     
 {% endblock %}
