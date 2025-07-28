@@ -25,7 +25,6 @@
           <span class="price">{{ restaurant.cuisine }}</span>
           <span class="price">{{ restaurant.vibe }}</span>
           <button class="heart-btn-inline" 
-            onclick="toggleLove('{{ restaurant.name }}', '{{ restaurant.location }}', this)"
             data-name="{{ restaurant.name }}"
             data-location="{{ restaurant.location }}">
             {% if restaurant.loved %}
@@ -136,31 +135,50 @@
 </div>
 
 <script>
-// Toggle love status for restaurants
-function toggleLove(name, location, button) {
-  fetch('/love_restaurant', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: name,
-      location: location
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.loved) {
-      // Restaurant is now loved - fill the heart
-      button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
-    } else {
-      // Restaurant is no longer loved - empty the heart
-      button.innerHTML = '<i class="far fa-heart"></i>';
+// Event delegation for all heart buttons
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.heart-btn-inline')) {
+        e.preventDefault();
+        const button = e.target.closest('.heart-btn-inline');
+        const name = button.getAttribute('data-name');
+        const location = button.getAttribute('data-location');
+        
+        if (name && location) {
+            toggleRestaurantLove(name, location, button);
+        }
     }
-  })
-  .catch(error => {
-    console.error('Error toggling love:', error);
-  });
+});
+
+function toggleRestaurantLove(name, location, button) {
+    console.log('Toggling love for:', name, 'at', location);
+    
+    // Visual feedback
+    button.style.opacity = '0.5';
+    button.disabled = true;
+    
+    fetch('/love_restaurant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, location: location })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        
+        if (data.loved) {
+            button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+        } else {
+            button.innerHTML = '<i class="far fa-heart"></i>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update favorite. Please try again.');
+    })
+    .finally(() => {
+        button.style.opacity = '1';
+        button.disabled = false;
+    });
 }
 </script>
 
