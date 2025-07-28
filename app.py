@@ -411,10 +411,10 @@ def meal_detail(title):
                     "summary": m[2],
                     "source_url": m[3],
                     "loved": m[4],
-                    "diets": [],  # We don't store diets in the simple DB format
-                    "meal_type": "",  # We don't store meal_type in the simple DB format
-                    "instructions": [],  # Will be empty for DB meals
-                    "ingredients": []   # Will be empty for DB meals
+                    "diets": [], 
+                    "meal_type": m[5],  
+                    "instructions": [], 
+                    "ingredients": [] 
                 }
                 break
                 

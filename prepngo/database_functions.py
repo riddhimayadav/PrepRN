@@ -31,6 +31,7 @@ def init_db(path: str) -> sqlite3.Connection:
     ''')
 
     add_loved_column_to_meals(conn)
+    add_meal_type_column_to_meals(conn)
     
     # Table to store meals generated from a request
     cur.execute('''
@@ -135,8 +136,8 @@ def save_meals(
     for m in meals:
         cur.execute('''
             INSERT INTO meals
-                (request_id, title, price, diets, summary, source_url)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (request_id, title, price, diets, summary, source_url, meal_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (
             request_id,
             m['title'],
@@ -144,6 +145,7 @@ def save_meals(
             ','.join(m['diets']),
             m['summary'],
             m['source_url'],
+            m.get('meal_type', '')
         ))
     conn.commit()
 
@@ -182,13 +184,24 @@ def get_saved_meals(conn: sqlite3.Connection, user_id: int) -> List[tuple]:
     """Retrieve all saved meals for a user, joined with request metadata."""
     cur = conn.cursor()
     cur.execute('''
-        SELECT meals.title, meals.price, meals.summary, meals.source_url, meals.loved
+        SELECT meals.title, meals.price, meals.summary, meals.source_url, meals.loved, meals.meal_type
         FROM meals
         JOIN requests ON meals.request_id = requests.id
         WHERE requests.user_id = ?
         ORDER BY meals.id DESC
     ''', (user_id,))
     return cur.fetchall()
+
+
+def add_meal_type_column_to_meals(conn: sqlite3.Connection) -> None:
+    """Add meal_type column to meals table if it doesn't exist."""
+    cur = conn.cursor()
+    try:
+        cur.execute('ALTER TABLE meals ADD COLUMN meal_type TEXT DEFAULT ""')
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
 
 
 def clear_loved_meals_db(conn: sqlite3.Connection, user_id: int) -> None:
