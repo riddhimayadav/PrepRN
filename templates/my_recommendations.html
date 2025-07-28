@@ -154,14 +154,16 @@
             <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}">
               <div class="card-content">
                 <strong>{{ m[0] }}</strong><br>
-                <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
-                <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
-                    {% if m[4] %}
-                    <i class="fas fa-heart" style="color: red;"></i>
-                    {% else %}
-                    <i class="far fa-heart"></i>
-                    {% endif %}
-                </button>
+                  <div class="rating-price-inline">
+                    <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
+                    <button class="heart-btn-inline" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                        {% if m[4] %}
+                        <i class="fas fa-heart" style="color: red;"></i>
+                        {% else %}
+                        <i class="far fa-heart"></i>
+                        {% endif %}
+                    </button>
+                  </div>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
                     <a href="{{ url_for('meal_detail', title=m[0], source='prep-search-history') }}" class="details-btn">
@@ -196,10 +198,12 @@
             <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}">
               <div class="card-content">
                 <strong>{{ m[0] }}</strong><br>
-                <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
-                <button class="heart-btn" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
-                  <i class="fas fa-heart" style="color: red;"></i>
-                </button>
+                  <div class="rating-price-inline">
+                    <span class="price">💰 ${{ "%.2f"|format(m[1]) }}</span>
+                    <button class="heart-btn-inline" onclick="toggleMealLove('{{ m[0] }}', '{{ m[3] }}', this)">
+                      <i class="fas fa-heart" style="color: red;"></i>
+                    </button>
+                  </div>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
                     <a href="{{ url_for('meal_detail', title=m[0], source='prep-loved') }}" class="details-btn">
@@ -384,7 +388,7 @@ function toggleMealLove(name, url, button) {
         allMealCards.forEach(card => {
             const cardName = card.getAttribute('data-meal-name');
             const cardUrl = card.getAttribute('data-meal-url');
-            const heartBtn = card.querySelector('.heart-btn');
+            const heartBtn = card.querySelector('.heart-btn-inline');
 
             if (cardName === name && cardUrl === url && heartBtn) {
                 if (data.loved) {
