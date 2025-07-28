@@ -393,24 +393,61 @@ def meal_detail(title):
     if "user_id" not in session:
         return redirect(url_for("login_view"))
     user_id = session["user_id"]
+    
+    # Check if coming from my_recommendations
+    source = request.args.get('source', '')
+    
+    if source.startswith('prep-'):
+        # Coming from my_recommendations - get meal from database
+        saved_meals = get_saved_prepngo(user_id)
+        meal = None
+        
+        # Find the meal in saved results
+        for m in saved_meals:
+            if m[0] == title:  # m[0] is the title
+                meal = {
+                    "title": m[0],
+                    "price": m[1], 
+                    "summary": m[2],
+                    "source_url": m[3],
+                    "loved": m[4],
+                    "diets": [],  # We don't store diets in the simple DB format
+                    "meal_type": "",  # We don't store meal_type in the simple DB format
+                    "instructions": [],  # Will be empty for DB meals
+                    "ingredients": []   # Will be empty for DB meals
+                }
+                break
+                
+        if not meal:
+            flash("Recipe not found.", "warning") 
+            return redirect(url_for("my_recommendations"))
+            
+        # Empty lists since DB doesn't store detailed info
+        instructions = []
+        ingredients = []
+        
+    else:
+        # Coming from prep form - get meal from session
+        results = session.get("prep_results", {}) or {}
+        meals = results.get("meals", [])
+        meal = next((m for m in meals if m["title"] == title), None)
 
-    # pull the full PrepnGo results out of session
-    results = session.get("prep_results", {}) or {}
-    meal = next((m for m in results.get("meals", []) if m["title"] == title), None)
-    if not meal:
-        flash("Recipe not found.", "warning")
-        return redirect(url_for("prep"))
+        if not meal:
+            flash("Recipe not found.", "warning")
+            return redirect(url_for("prep"))
 
-    # they’re already simple lists now:
-    ingredients  = meal.get("ingredients", [])
-    instructions = meal.get("instructions", [])
+        # grab the lists we injected
+        instructions = meal.get("instructions", [])
+        ingredients = meal.get("ingredients", [])
+
     current_notes = get_meal_notes(user_id, title)
 
     return render_template("meal_detail.html",
         meal=meal,
-        ingredients=ingredients,
         instructions=instructions,
-        current_notes=current_notes
+        ingredients=ingredients,
+        current_notes=current_notes,
+        source=source  # Pass source to template
     )
 
 

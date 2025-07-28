@@ -7,7 +7,7 @@
 {% block content %}
 <div class="restaurant-detail-wrapper">
 
-  <button onclick="history.back()" class="back-button">
+  <button onclick="goBack()" class="back-button">
     <i class="fas fa-arrow-left"></i> Back
   </button>
 
@@ -308,6 +308,22 @@ function showStatus(message, isLoading) {
     } else {
         spinner.className = 'fas fa-check';
         statusDiv.style.color = '#28a745';
+    }
+}
+
+// Smart back navigation
+function goBack() {
+    const source = "{{ source }}";
+    
+    if (source === 'prep-search-history') {
+        // Go back to my_recommendations with meals tab and search history active
+        window.location.href = "{{ url_for('my_recommendations') }}#prep-search-history";
+    } else if (source === 'prep-loved') {
+        // Go back to my_recommendations with meals tab and loved active  
+        window.location.href = "{{ url_for('my_recommendations') }}#prep-loved";
+    } else {
+        // Default: go back to prep form (coming from fresh meal generation)
+        history.back();
     }
 }
 </script>

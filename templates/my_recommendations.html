@@ -164,13 +164,13 @@
                 </button>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
-                    <a href="{{ url_for('meal_detail', title=m[0]) }}" class="details-btn">
+                    <a href="{{ url_for('meal_detail', title=m[0], source='prep-search-history') }}" class="details-btn">
                         <i class="fas fa-info-circle"></i> Details
                     </a>
                     <a href="{{ m[3] }}" target="_blank" class="details-btn">
                         <i class="fas fa-external-link-alt"></i> View Recipe
                     </a>
-                    </div>
+                </div>
               </div>
             </div>
           {% endfor %}
@@ -202,13 +202,13 @@
                 </button>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
-                    <a href="{{ url_for('meal_detail', title=m[0]) }}" class="details-btn">
+                    <a href="{{ url_for('meal_detail', title=m[0], source='prep-loved') }}" class="details-btn">
                         <i class="fas fa-info-circle"></i> Details
                     </a>
                     <a href="{{ m[3] }}" target="_blank" class="details-btn">
                         <i class="fas fa-external-link-alt"></i> View Recipe
                     </a>
-                    </div>
+                </div>
               </div>
             </div>
           {% endfor %}
@@ -422,6 +422,41 @@ function toggleMealLove(name, url, button) {
     .catch(error => {
         console.error('Error toggling meal love:', error);
     });
+}
+
+// Handle hash-based navigation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = window.location.hash.substring(1); // Remove the #
+    
+    if (hash === 'prep-search-history') {
+        // Show meals tab and search history
+        activateMainTab('prep');
+        activateSubTab('prep', 'search-history');
+    } else if (hash === 'prep-loved') {
+        // Show meals tab and loved meals
+        activateMainTab('prep');
+        activateSubTab('prep', 'loved');
+    }
+    
+    // Clear the hash after processing
+    if (hash.startsWith('prep-')) {
+        history.replaceState(null, null, window.location.pathname);
+    }
+});
+
+// Helper functions that don't rely on event object
+function activateMainTab(tabId) {
+    document.querySelectorAll('.main-tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+    document.querySelectorAll('.main-tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[onclick="showMainTab('${tabId}')"]`).classList.add('active');
+}
+
+function activateSubTab(mainTab, subTab) {
+    document.querySelectorAll(`#${mainTab} .sub-tab-content`).forEach(el => el.style.display = 'none');
+    document.getElementById(`${mainTab}-${subTab}`).style.display = 'block';
+    document.querySelectorAll(`#${mainTab} .sub-tab-button`).forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[onclick="showSubTab('${mainTab}', '${subTab}')"]`).classList.add('active');
 }
 </script>
     
