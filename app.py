@@ -327,14 +327,23 @@ def prep():
             "grocery":   grocery,
             # pantry branch when grocery == "no"
             "pantry":    [] if grocery == "yes" else pantry_items,
+            # GPS coordinates (new addition)
+            "latitude":  request.form.get("latitude"),
+            "longitude": request.form.get("longitude")
         }
 
         # —— Validation —— 
-        if not user_input["location"] or not user_input["servings"]:
-            flash("Please enter both a location and number of servings.")
+        if not user_input["servings"]:
+            flash("Please enter the number of servings.")
             return redirect(url_for("prep"))
+            
+        # Validate location - either manual location or GPS coordinates
+        if not user_input["location"] and not (user_input["latitude"] and user_input["longitude"]):
+            flash("Please enter a location or use GPS.")
+            return redirect(url_for("prep"))
+            
         if grocery == "yes" and not user_input["budget"]:
-            flash("Please enter your budget for today’s meal.")
+            flash("Please enter your budget for today's meal.")
             return redirect(url_for("prep"))
 
         # —— Run PrepnGo & stash results —— 

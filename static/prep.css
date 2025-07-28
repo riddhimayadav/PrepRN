@@ -99,6 +99,67 @@
   box-sizing: border-box;
 }
 
+/* GPS Location controls styling */
+.location-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* FIXED: More specific selector to override general button styles */
+.eatin-form .location-btn {
+  width: 100% !important;
+  padding: 0.8em !important;
+  font-size: 0.95rem !important;
+  font-weight: bold !important;
+  background-color: white;
+  color: #ACB288;
+  border: 2px solid #ACB288 !important;
+  border-radius: 0 0 10px 10px !important;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.eatin-form .location-btn:hover {
+  background-color: #ACB288;
+  color: white;
+}
+
+.eatin-form .location-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.or-divider {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+  position: relative;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
 /* Fieldset (diet checkboxes) */
 fieldset {
   border: none;
@@ -118,8 +179,8 @@ fieldset label {
   font-weight: normal;
 }
 
-/* Submit Button */
-.eatin-form button {
+/* Submit Button - exclude location button with more specific selector */
+.eatin-form button[type="submit"] {
   background: var(--primary-green);
   color: white;
   padding: 0.9rem;
@@ -130,7 +191,7 @@ fieldset label {
   cursor: pointer;
   transition: background 0.3s ease;
 }
-.eatin-form button:hover {
+.eatin-form button[type="submit"]:hover {
   background: #959e70;
 }
 
@@ -200,7 +261,7 @@ fieldset label {
   top: 1rem;
 }
 
-/* ensure text doesn’t bump into the icon */
+/* ensure text doesn't bump into the icon */
 .store-list li {
   padding-left: 2.5rem;
 }
@@ -274,7 +335,7 @@ fieldset label {
   margin: 5px 0;
 }
 
-/* Questionnaire steps (if you’re using a multi‑step form) */
+/* Questionnaire steps (if you're using a multi‑step form) */
 .step { 
   display: none; 
 }
@@ -307,7 +368,7 @@ main {
   margin: 2rem 0;
 }
 
-/* style each “card” */
+/* style each "card" */
 .recommendation {
   background: #fff;
   border: 2px solid #333;

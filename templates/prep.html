@@ -23,15 +23,21 @@
       action="{{ url_for('prep') }}"
       onsubmit="return showLoading(event)"
     >
-      <!-- Location -->
+      <!-- Location with GPS -->
       <div class="input-group">
         <label><i class="fas fa-map-marker-alt"></i> Location:</label>
-        <input
-          type="text"
-          name="location"
-          placeholder="e.g. Austin, TX"
-          required
-        >
+        <div class="location-controls">
+          <button type="button" class="location-btn default" id="gpsBtn" onclick="getLocation()">
+            <i class="fas fa-location-arrow"></i> Use My Current Location
+          </button>
+          <div class="or-divider">or</div>
+          <input type="text" id="locationInput" name="location" 
+                 placeholder="Enter address, city, or zip code" 
+                 value="{{ request.form.location if request.form.location }}"
+                 required>
+        </div>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
       </div>
 
       <!-- Grocery or Pantry Option -->
@@ -175,7 +181,7 @@
   {% for item in results['stores'].split('\n') %}
     {% set clean = item.lstrip('- ') %}
     {% if clean %}
-      {# split at the first “: ” #}
+      {# split at the first ": " #}
       {% set name, sep, desc = clean.partition(': ') %}
       <li>
         <strong>{{ name }}</strong>{{ sep }}{{ desc }}
@@ -198,7 +204,7 @@
       return false;
     };
 
-    // 2) if we’ve got recommendations, scroll them into view
+    // 2) if we've got recommendations, scroll them into view
     const rec = document.getElementById("recommendations");
     if (rec) rec.scrollIntoView({ behavior: "smooth" });
 
@@ -206,9 +212,9 @@
     document.querySelectorAll('input[name="grocery"]').forEach(radio => {
       radio.addEventListener('change', e => {
         const groceryYes = e.target.value === 'yes';
-        // show budget input only if “yes”
+        // show budget input only if "yes"
         document.getElementById('budget-group').style.display = groceryYes ? 'block' : 'none';
-        // show pantry list only if “no”
+        // show pantry list only if "no"
         document.getElementById('pantry-group').style.display = groceryYes ? 'none' : 'block';
         // clear any leftover budget if hiding
         if (!groceryYes) {
@@ -218,8 +224,90 @@
     });
   });
 
+  // GPS Location functionality - adapted from foodies.html
+  let locationFound = false;
 
-  // 4) AJAX toggle for “love” heart on each meal
+  function getLocation() {
+    const gpsBtn = document.getElementById('gpsBtn');
+    const locationInput = document.getElementById('locationInput');
+    
+    // Update button to show loading state while retrieving location
+    gpsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+    gpsBtn.disabled = true;
+    gpsBtn.style.backgroundColor = '#ACB288';
+    gpsBtn.style.color = 'white';
+    gpsBtn.style.pointerEvents = 'none';
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          // Success - got GPS coordinates
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          
+          // Store coordinates in hidden fields
+          document.getElementById('latitude').value = latitude;
+          document.getElementById('longitude').value = longitude;
+
+          // Put coordinates in location field as backup
+          locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          locationInput.placeholder = 'GPS location found';
+          
+          locationFound = true;
+          gpsBtn.innerHTML = '<i class="fas fa-check"></i> Location Found!';
+          gpsBtn.style.backgroundColor = '#ACB288';
+          gpsBtn.style.color = 'white';
+          gpsBtn.style.pointerEvents = 'none';
+          gpsBtn.disabled = false;
+        },
+        function(error) {
+          // Error or denied
+          console.error('GPS Error:', error);
+          gpsBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS Unavailable';
+          gpsBtn.style.backgroundColor = '#FB4141';
+          gpsBtn.style.color = 'white';
+          gpsBtn.style.pointerEvents = 'auto';
+          gpsBtn.disabled = false;
+          
+          alert('Unable to get your location. Please enter your address manually.');
+          locationInput.focus();
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    } else {
+      // Browser doesn't support geolocation
+      gpsBtn.innerHTML = '<i class="fas fa-times"></i> Not Supported';
+      gpsBtn.style.backgroundColor = '#FB4141';
+      gpsBtn.style.color = 'white';
+      gpsBtn.style.pointerEvents = 'none';
+      alert('Your browser does not support location services. Please enter your address manually.');
+      locationInput.focus();
+    }
+  }
+
+  // Clear GPS data when user types in location input
+  document.getElementById('locationInput').addEventListener('input', function() {
+    if (locationFound || document.getElementById('latitude').value) {
+      document.getElementById('latitude').value = '';
+      document.getElementById('longitude').value = '';
+      locationFound = false;
+      
+      const gpsBtn = document.getElementById('gpsBtn');
+      gpsBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Use My Current Location';
+      gpsBtn.style.backgroundColor = '';
+      gpsBtn.style.color = '';
+      gpsBtn.style.pointerEvents = 'auto';
+      gpsBtn.disabled = false;
+      
+      this.placeholder = 'Enter address, city, or zip code';
+    }
+  });
+
+  // 4) AJAX toggle for "love" heart on each meal
   function toggleMealLove(name, url, button) {
     fetch('/love_meal', {
       method: 'POST',
