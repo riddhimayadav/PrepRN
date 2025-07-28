@@ -164,10 +164,13 @@
                 </button>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
+                    <a href="{{ url_for('meal_detail', title=m[0]) }}" class="details-btn">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
                     <a href="{{ m[3] }}" target="_blank" class="details-btn">
-                    <i class="fas fa-external-link-alt"></i> View Recipe
-                  </a>
-                </div>
+                        <i class="fas fa-external-link-alt"></i> View Recipe
+                    </a>
+                    </div>
               </div>
             </div>
           {% endfor %}
@@ -199,10 +202,13 @@
                 </button>
                 <p class="meal-description">{{ m[2] }}</p>
                 <div class="meal-actions">
-                  <a href="{{ m[3] }}" target="_blank" class="details-btn">
-                    <i class="fas fa-external-link-alt"></i> View Recipe
-                  </a>
-                </div>
+                    <a href="{{ url_for('meal_detail', title=m[0]) }}" class="details-btn">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
+                    <a href="{{ m[3] }}" target="_blank" class="details-btn">
+                        <i class="fas fa-external-link-alt"></i> View Recipe
+                    </a>
+                    </div>
               </div>
             </div>
           {% endfor %}

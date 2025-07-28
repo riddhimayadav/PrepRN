@@ -50,6 +50,7 @@ init_pantry_db()
 @app.route("/")
 @app.route("/home")
 def home():
+    session.pop("prep_results", None)
     return render_template("home.html")
 
 
@@ -202,7 +203,7 @@ def clear_loved_meals():
     if "user_id" not in session:
         return redirect(url_for("login_view"))
     
-    from shared.prepngo_helpers import clear_loved_meals_db
+    from prepngo.prepngo_helpers import clear_loved_meals_db
     clear_loved_meals_db(session["user_id"])
     return redirect(url_for("my_recommendations"))
 
