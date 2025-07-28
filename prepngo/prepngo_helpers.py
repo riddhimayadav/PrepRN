@@ -119,6 +119,24 @@ def clear_loved_meals_db(user_id):
     conn.close()
 
 
+def delete_individual_meal(user_id, meal_title):
+    """Delete a specific meal for a user"""
+    conn = init_db('preprn.db')
+    cur = conn.cursor()
+    
+    # Delete from meals table where the meal belongs to this user
+    cur.execute('''
+        DELETE FROM meals 
+        WHERE title = ? AND request_id IN (
+            SELECT id FROM requests WHERE user_id = ?
+        )
+    ''', (meal_title, user_id))
+    
+    conn.commit()
+    conn.close()
+    return True
+
+
 # Clear all saved meal results for a user
 def clear_saved_prepngo(user_id):
     conn = init_db('preprn.db')

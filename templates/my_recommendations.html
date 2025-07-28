@@ -33,7 +33,7 @@
       {% if foodiesrn_results %}
         <div class="card-container">
           {% for r in foodiesrn_results %}
-            <div class="card restaurant-card">
+            <div class="card restaurant-card" data-restaurant-name="{{ r.name }}" data-restaurant-location="{{ r.location }}">
               <img src="{{ r.image_url }}" alt="Restaurant Image" class="card-img"
                 onerror="this.onerror=null;this.src='https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg';">
               
@@ -51,6 +51,12 @@
                         {% else %}
                         <i class="far fa-heart"></i>
                         {% endif %}
+                    </button>
+                    <button class="delete-btn-inline" 
+                        data-name="{{ r.name }}"
+                        data-location="{{ r.location }}"
+                        title="Delete from search history">
+                        <i class="fas fa-trash-alt" style="color: #dc3545;"></i>
                     </button>
                     </div>
 
@@ -151,7 +157,7 @@
       {% if prepngo_results %}
         <div class="card-container">
           {% for m in prepngo_results %}
-            <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}">
+            <div class="card meal-card" data-meal-name="{{ m[0] }}" data-meal-url="{{ m[3] }}" data-meal-title="{{ m[0] }}">
               <div class="card-content">
                 <strong>{{ m[0] }}</strong><br>
                   <div class="rating-price-inline">
@@ -162,6 +168,11 @@
                         {% else %}
                         <i class="far fa-heart"></i>
                         {% endif %}
+                    </button>
+                    <button class="delete-btn-inline" 
+                        data-title="{{ m[0] }}"
+                        title="Delete from search history">
+                        <i class="fas fa-trash-alt" style="color: #dc3545;"></i>
                     </button>
                   </div>
                 <p class="meal-description">{{ m[2] }}</p>
@@ -250,8 +261,7 @@ function showSubTab(mainTab, subTab) {
     }
 }
 
-
-// Event delegation for all heart buttons - this handles both original and cloned buttons
+// Event delegation for all buttons - this handles heart buttons and delete buttons
 document.addEventListener('click', function(e) {
     // Handle restaurant love buttons
     if (e.target.closest('.heart-btn-inline')) {
@@ -264,7 +274,115 @@ document.addEventListener('click', function(e) {
             toggleRestaurantLove(name, location, button);
         }
     }
+    
+    // Handle restaurant delete buttons
+    if (e.target.closest('.delete-btn-inline') && e.target.closest('.restaurant-card')) {
+        e.preventDefault();
+        const button = e.target.closest('.delete-btn-inline');
+        const name = button.getAttribute('data-name');
+        const location = button.getAttribute('data-location');
+        
+        if (name && location) {
+            if (confirm(`Are you sure you want to delete "${name}" from your search history?`)) {
+                deleteRestaurant(name, location, button);
+            }
+        }
+    }
+    
+    // Handle meal delete buttons
+    if (e.target.closest('.delete-btn-inline') && e.target.closest('.meal-card')) {
+        e.preventDefault();
+        const button = e.target.closest('.delete-btn-inline');
+        const title = button.getAttribute('data-title');
+        
+        if (title) {
+            if (confirm(`Are you sure you want to delete "${title}" from your search history?`)) {
+                deleteMeal(title, button);
+            }
+        }
+    }
 });
+
+function deleteRestaurant(name, location, button) {
+    console.log('Deleting restaurant:', name, 'at', location);
+    
+    // Visual feedback
+    const card = button.closest('.restaurant-card');
+    card.style.opacity = '0.5';
+    button.disabled = true;
+    
+    fetch('/delete_restaurant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, location: location })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the card from the DOM
+            card.remove();
+            console.log('Restaurant deleted successfully');
+        } else {
+            throw new Error(data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete restaurant. Please try again.');
+        // Restore card appearance
+        card.style.opacity = '1';
+        button.disabled = false;
+    });
+}
+
+function deleteMeal(title, button) {
+    console.log('Deleting meal:', title);
+    
+    // Visual feedback
+    const card = button.closest('.meal-card');
+    card.style.opacity = '0.5';
+    button.disabled = true;
+    
+    fetch('/delete_meal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the card from search history
+            card.remove();
+            
+            // Also remove from loved tab if it exists there
+            const lovedTabContainer = document.getElementById('prep-loved').querySelector('.card-container');
+            const lovedCards = lovedTabContainer.querySelectorAll('.meal-card');
+            lovedCards.forEach(lovedCard => {
+                const cardTitle = lovedCard.getAttribute('data-meal-name');
+                if (cardTitle === title) {
+                    lovedCard.remove();
+                }
+            });
+            
+            // Check if loved tab is now empty and show appropriate message
+            const remainingLovedCards = lovedTabContainer.querySelectorAll('.meal-card');
+            if (remainingLovedCards.length === 0) {
+                lovedTabContainer.innerHTML = "<p>No liked meals yet. ❤️ Heart some meals to see them here!</p>";
+            }
+            
+            console.log('Meal deleted successfully from both tabs');
+        } else {
+            throw new Error(data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete meal. Please try again.');
+        // Restore card appearance
+        card.style.opacity = '1';
+        button.disabled = false;
+    });
+}
 
 function toggleRestaurantLove(name, location, button) {
     console.log('Toggling love for:', name, 'at', location);
@@ -368,7 +486,6 @@ function reloadLovedTab() {
         });
 }
 
-
 // Keep the meal love function as is for now
 function toggleMealLove(name, url, button) {
     fetch('/love_meal', {
@@ -411,6 +528,13 @@ function toggleMealLove(name, url, button) {
 
             if (!alreadyExists) {
                 const clonedCard = originalCard.cloneNode(true);
+                
+                // Remove delete button from cloned card (loved tab shouldn't have delete buttons)
+                const deleteBtn = clonedCard.querySelector('.delete-btn-inline');
+                if (deleteBtn) {
+                    deleteBtn.remove();
+                }
+                
                 lovedTabContainer.appendChild(clonedCard);
             }
         } else {

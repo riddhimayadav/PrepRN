@@ -445,6 +445,21 @@ def view_saved_recommendations(user_id):
     return results
 
 
+def delete_individual_restaurant(user_id, restaurant_name, restaurant_location):
+    """Delete a specific restaurant recommendation for a user"""
+    create_foodiesrn_table()
+    with engine.connect() as connection:
+        connection.execute(
+            db.text(f"""
+                DELETE FROM {TABLE_RN} 
+                WHERE user_id = :uid AND name = :name AND location = :location
+            """),
+            {"uid": user_id, "name": restaurant_name, "location": restaurant_location}
+        )
+        connection.commit()
+    return True
+
+
 # Remove all saved recommendations for a specific user
 def clear_saved_recommendations(user_id):
     create_foodiesrn_table()

@@ -553,6 +553,50 @@ def update_meal_notes_route():
     success = update_meal_notes(session["user_id"], title, notes)
     return {"success": success}
 
+
+@app.route("/delete_restaurant", methods=["POST"])
+def delete_restaurant():
+    if "user_id" not in session:
+        return {"error": "Not logged in"}, 401
+    
+    data = request.get_json()
+    restaurant_name = data.get("name")
+    restaurant_location = data.get("location")
+    
+    if not restaurant_name or not restaurant_location:
+        return {"error": "Missing restaurant data"}, 400
+    
+    try:
+        from FoodiesRN.run_foodiesrn import delete_individual_restaurant
+        delete_individual_restaurant(
+            session["user_id"], 
+            restaurant_name, 
+            restaurant_location
+        )
+        return {"success": True}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+@app.route("/delete_meal", methods=["POST"])
+def delete_meal():
+    if "user_id" not in session:
+        return {"error": "Not logged in"}, 401
+    
+    data = request.get_json()
+    meal_title = data.get("title")
+    
+    if not meal_title:
+        return {"error": "Missing meal data"}, 400
+    
+    try:
+        from prepngo.prepngo_helpers import delete_individual_meal
+        delete_individual_meal(session["user_id"], meal_title)
+        return {"success": True}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
 # Start the Flask app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
