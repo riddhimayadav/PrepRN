@@ -305,11 +305,17 @@ def prep():
         return redirect(url_for("login_view"))
 
     user_id      = session["user_id"]
+    # always fetch dashboard settings
     restrictions = get_user_restrictions(user_id)
     pantry_items = get_pantry_items(user_id)
 
+    # ——— Optional “clear old results” hook ———
+    # if you navigate here with ?clear=1 we’ll drop old session data
+    if request.method == "GET" and request.args.get("clear"):
+        session.pop("prep_results", None)
+
+    # ——— Form submission ———
     if request.method == "POST":
-        # build payload
         grocery = request.form.get("grocery")
         user_input = {
             "location":  request.form.get("location", "").strip(),
@@ -318,10 +324,11 @@ def prep():
             "diets":     restrictions,
             "meal_type": request.form.get("meal_type", "").strip(),
             "grocery":   grocery,
+            # if using pantry only, inject items from dashboard
             "pantry":    [] if grocery == "yes" else pantry_items
         }
 
-        # validation
+        # —— Basic validation —— 
         if not user_input["location"] or not user_input["servings"]:
             flash("Please enter both a location and number of servings.")
             return redirect(url_for("prep"))
@@ -329,25 +336,24 @@ def prep():
             flash("Please enter your budget for today’s meal.")
             return redirect(url_for("prep"))
 
-        # run PrepnGo
-        start   = time.time()
+        # —— Run PrepnGo & store results —— 
+        start = time.time()
         results = get_prepngo_meals(user_input, user_id)
         results["duration"] = f"{time.time() - start:.2f}"
 
         save_prepngo_results(results["meals"], user_input, user_id)
         session["prep_results"] = results
 
-        # redirect back so our loading + scroll logic works on GET
+        # do a redirect so our loading spinner + auto‑scroll work on the GET
         return redirect(url_for("prep"))
 
-    # —— GET ——  
-    # just render with whatever's in session (possibly None)
+    # ——— GET: show form + any existing results in session ———
     results = session.get("prep_results")
     return render_template(
         "prep.html",
-        results=       results,
-        restrictions=  restrictions,
-        pantry_items=  pantry_items
+        results=      results,
+        restrictions= restrictions,
+        pantry_items= pantry_items
     )
 
 
@@ -395,6 +401,33 @@ def love_restaurant():
     except Exception as e:
         return {"error": str(e)}, 500
 
+@app.route("/meal/<path:title>")
+def meal_detail(title):
+    if "user_id" not in session:
+        return redirect(url_for("login_view"))
+    user_id = session["user_id"]
+
+    # grab the full prep_results from session
+    results = session.get("prep_results", {})
+    meals = results.get("meals", [])
+    meal = next((m for m in meals if m["title"] == title), None)
+    if not meal:
+        flash("Recipe not found.", "warning")
+        return redirect(url_for("prep"))
+
+    # parse JSON fields if you stored them as JSON strings
+    import json
+    instructions = json.loads(meal.get("instructions","[]"))
+    shopping_list = json.loads(meal.get("shopping_list","[]"))
+    current_notes = get_meal_notes(user_id, title)
+
+    return render_template(
+      "meal_detail.html",
+       meal=meal,
+       instructions=instructions,
+       shopping_list=shopping_list,
+       current_notes=current_notes
+    )
 
 # AJAX route to toggle meal love status
 @app.route("/love_meal", methods=["POST"])
@@ -449,3 +482,11 @@ def update_restaurant_notes_route():
 # Start the Flask app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
+
+@app.route("/update_meal_notes", methods=["POST"])
+def update_meal_notes_route():
+    if "user_id" not in session:
+        return {"error":"Not logged in"}, 401
+    data = request.get_json()
+    success = update_meal_notes(session["user_id"], data["title"], data["notes"])
+    return {"success": success}

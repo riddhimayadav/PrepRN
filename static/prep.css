@@ -1,3 +1,4 @@
+/* Re-use same green as Eat Out */
 :root {
   --primary-green: #ACB288;
 }
@@ -67,7 +68,6 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.2rem;
-  font-weight: normal;
 }
 
 /* Round only the bottom of the last option */
@@ -134,6 +134,15 @@ fieldset label {
   background: #959e70;
 }
 
+.eatin-wrapper {
+  max-width: none;
+}
+.recommendation-wrapper {
+  max-width: 1000px;
+  width: 100%;
+  margin: 2rem auto;
+}
+
 /* Loading message */
 #loading-msg {
   display: none;
@@ -151,51 +160,59 @@ fieldset label {
   margin-top: 2rem;
 }
 
+/* Remove default list styling for recommendations */
 #recommendations > ul {
   list-style: none;
   padding: 0;
-}
-#recommendations > ul li {
-  background: white;
-  border-left: 4px solid var(--primary-green);
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-#recommendations > ul li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-#recommendations > ul li a {
-  color: var(--primary-green);
+  margin: 0;
 }
 
-/* Store list styling */
-ul.store-list {
-  background: #f7f7f7;
+/* ── Shopping‑list cards in a single row ── */
+.store-list {
+  display: flex;
+  flex-wrap: nowrap;      /* keep them on one line */
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  overflow-x: auto;       /* allow side‑scroll if viewport is narrow */
+  padding-bottom: 1rem;   /* room for scrollbar */
+  list-style: none;       /* turn off bullets */
+  padding-left: 0;        /* override default UL padding */
+}
+
+.store-list li {
+  flex: 0 0 260px;        /* fixed width like recipe cards */
+  background: white;
+  border: 2px solid #333;
+  border-radius: 10px;
   padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  list-style: none;
-}
-ul.store-list li {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   position: relative;
-  padding-left: 1.5em;
-  margin-bottom: 0.75rem;
+  margin: 0;              /* remove default LI margins */
   line-height: 1.4;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-ul.store-list li:before {
+
+/* keep the cart icon in the same spot */
+.store-list li:before {
   content: "🛒";
   position: absolute;
-  left: 0;
-  top: 0.1em;
+  left: 0.8rem;
+  top: 1rem;
 }
-ul.store-list li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+/* ensure text doesn’t bump into the icon */
+.store-list li {
+  padding-left: 2.5rem;
+}
+
+.store-list li {
+  margin-top: 2px;
+  transition: margin 0.2s ease, box-shadow 0.2s ease;
+}
+
+.store-list li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Heart button styles - matching restaurant side */
@@ -257,14 +274,14 @@ ul.store-list li:hover {
   margin: 5px 0;
 }
 
-/* Questionnaire steps (if you’re using a multi‑step form)
+/* Questionnaire steps (if you’re using a multi‑step form) */
 .step { 
   display: none; 
 }
 #questionnaire-loading { 
   font-style: italic; 
   color: #555; 
-} */
+}
 
 /* Center the questionnaire on the page */
 main {
@@ -276,8 +293,84 @@ main {
   box-sizing: border-box;
   background: #fafafa;  /* match your background */
 }
-
 .eatin-wrapper {
-  max-width: 480px;     /* reasonable width for your form */
-  width: 100%;
+  max-width: 100%;
+}
+
+
+/* meal plan as cards */
+.recommendation-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+/* style each “card” */
+.recommendation {
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  width: 260px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex: 0 0 260px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.recommendation:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* meal title */
+.recommendation h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* summary text stretches to push buttons to bottom */
+.recommendation p {
+  flex-grow: 1;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+/* price & heart already handled */
+/* your action‑buttons container inside each card */
+.recommendation .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.recommendation .action-buttons a {
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 0.5em 0.8em;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.3s ease;
+}
+.recommendation .action-buttons a:hover {
+  background: #d3e3b3;
+}
+
+/* stack on small screens */
+@media (max-width: 600px) {
+  .recommendation-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+  .recommendation {
+    width: 90%;
+    max-width: 320px;
+  }
 }

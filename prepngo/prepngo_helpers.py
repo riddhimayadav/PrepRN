@@ -2,6 +2,8 @@
 import sqlite3
 from prepngo.PrepnGo import main as run_prepngo_main
 from prepngo.database_functions import *
+from FoodiesRN.run_foodiesrn import engine
+from sqlalchemy import text
 
 
 # Run the PrepnGo meal planner and return the meal results
@@ -57,3 +59,40 @@ def get_loved_meals(user_id):
     loved_meals = get_user_loved_meals(conn, user_id)
     conn.close()
     return loved_meals
+
+def migrate_meals_notes_table():
+    """Add notes, instructions, shopping_list columns to meals table if missing."""
+    with engine.connect() as conn:
+        for col, typ in [
+            ("notes", "TEXT DEFAULT ''"),
+            ("user_id", "INTEGER")
+        ]:
+            try:
+                # try selecting the column
+                conn.execute(text(f"SELECT {col} FROM meals LIMIT 1"))
+                print(f"Column `{col}` already exists.")
+            except Exception:
+                print(f"Adding missing column `{col}` to meals table...")
+                conn.execute(text(f"ALTER TABLE meals ADD COLUMN {col} {typ}"))
+                conn.commit()
+                print(f"✅ Added `{col}` column.")
+
+def update_meal_notes(user_id, title, notes):
+    migrate_meals_notes_table()
+    with engine.connect() as conn:
+        conn.execute(text("""
+            UPDATE meals 
+               SET notes = :notes 
+             WHERE user_id = :uid AND title = :title
+        """), {"notes": notes, "uid": user_id, "title": title})
+        conn.commit()
+
+def get_meal_notes(user_id, title):
+    migrate_meals_notes_table()
+    with engine.connect() as conn:
+        row = conn.execute(text("""
+            SELECT notes 
+              FROM meals 
+             WHERE user_id = :uid AND title = :title
+        """), {"uid": user_id, "title": title}).fetchone()
+    return row[0] if row else ""

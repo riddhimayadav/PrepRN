@@ -556,3 +556,36 @@
     justify-content: center;
   }
 }
+
+/* container for the two cards */
+.detail-wrapper {
+  display: flex;
+  flex-wrap: wrap;              /* wrap on narrow screens */
+  gap: 2rem;                    /* space between cards */
+  justify-content: center;      /* center them if there’s extra room */
+  margin-top: 2rem;
+}
+
+/* individual card styling */
+.detail-card {
+  flex: 1 1 300px;              /* grow/shrink, base width 300px */
+  border: 2px solid #333;       /* match your theme */
+  border-radius: 10px;
+  padding: 1.5rem;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+
+/* card heading */
+.detail-card h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* lists inside the card */
+.detail-card ol,
+.detail-card ul {
+  margin: 1rem 0 0 1.2rem;
+}

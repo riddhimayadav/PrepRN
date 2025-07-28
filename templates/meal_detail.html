@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='restaurant_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="restaurant-detail-wrapper">
+
+  <button onclick="history.back()" class="back-button">
+    <i class="fas fa-arrow-left"></i> Back
+  </button>
+
+  <div class="restaurant-header">
+    <div class="restaurant-details">
+      <h1>{{ meal.title }}</h1>
+      <div class="rating-price-cuisine-vibe">
+        <span class="price">💰 ${{ "%.2f"|format(meal.price) }}</span>
+      </div>
+      <p>{{ meal.summary }}</p>
+      <div class="action-buttons">
+        <a href="{{ meal.source_url }}" target="_blank" class="yelp-btn">
+          <i class="fas fa-external-link-alt"></i> View Source
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-wrapper" style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem;">
+    <div class="detail-card" style="flex:1; min-width:250px;">
+      <h3>Step‑by‑step Instructions</h3>
+      {% if instructions %}
+        <ol>
+          {% for step in instructions %}
+            <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p><em>No instructions available.</em></p>
+      {% endif %}
+    </div>
+
+    <div class="detail-card" style="flex:1; min-width:250px;">
+      <h3>Shopping List</h3>
+      {% if shopping_list %}
+        <ul>
+          {% for item in shopping_list %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p><em>No shopping list generated.</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="restaurant-notes" style="margin-top:2rem;">
+    <h3>My Notes</h3>
+    <div class="current-notes-display" style="margin-bottom:1rem;">
+      <p class="notes-content">{{ current_notes or "— no notes yet —" }}</p>
+    </div>
+    <div class="notes-editor">
+      <textarea
+        id="notesTextarea"
+        style="width:100%; min-height:120px; padding:1rem; border:1px solid #ddd; border-radius:8px;"
+      >{{ current_notes }}</textarea>
+      <div class="notes-actions" style="margin-top:0.5rem;">
+        <button onclick="saveNotes()" class="save-notes-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // simple AJAX notes save
+  function saveNotes() {
+    const notes = document.getElementById("notesTextarea").value;
+    fetch("/update_meal_notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "{{ meal.title }}", notes })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        alert("Saved!");
+        document.querySelector(".notes-content").textContent = notes || "— no notes yet —";
+      } else {
+        alert("Error saving notes.");
+      }
+    })
+    .catch(console.error);
+  }
+</script>
+{% endblock %}

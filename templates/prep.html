@@ -133,39 +133,57 @@
       <p>⏳ Generating your meal plan…</p>
     </div>
 
-    {% if results %}
-      <div id="recommendations">
-        <h3>🥗 Your Meal Plan</h3>
-        <ul>
-          {% for m in results['meals'] %}
-            <li>
-              <strong>{{ m['title'] }}</strong> —
-              ${{ "%.2f"|format(m['price']) }}
-              <button
-                class="heart-btn-inline"
-                onclick="toggleMealLove('{{ m['title'] }}','{{ m['source_url'] }}', this)"
-              >
-                {% if m.get('loved', false) %}
-                  <i class="fas fa-heart" style="color: red;"></i>
-                {% else %}
-                  <i class="far fa-heart"></i>
-                {% endif %}
-              </button><br>
-              {{ m['summary'] }}<br>
-              <a href="{{ m['source_url'] }}" target="_blank">View Recipe</a>
-            </li>
-          {% endfor %}
-        </ul>
-
-        <h3>🛒 Where to Shop</h3>
-        <ul class="store-list">
-          {% for line in results['stores'].split('\n') %}
-            {% set clean = line.lstrip('- ') %}
-            {% if clean %}<li>{{ clean }}</li>{% endif %}
-          {% endfor %}
-        </ul>
+    
+{% if results %}
+  <br><br>
+  <h3 id="recommendations">🥗 Your Meal Plan</h3>
+  <div class="recommendation-wrapper">
+    {% for m in results['meals'] %}
+    <div class="recommendation">
+      <div class="restaurant-content">
+        <h4>{{ m['title'] }}</h4>
+        <div class="rating-price-inline">
+          <span class="price">💰 ${{ "%.2f"|format(m['price']) }}</span>
+          <button class="heart-btn-inline"
+                  onclick="toggleMealLove('{{ m['title'] }}','{{ m['source_url'] }}', this)">
+            {% if m.get('loved') %}
+              <i class="fas fa-heart" style="color:red"></i>
+            {% else %}
+              <i class="far fa-heart"></i>
+            {% endif %}
+          </button>
+        </div>
+        <!-- summary or blurb -->
+        <p>{{ m['summary'] }}</p>
+        <div class="restaurant-actions">
+          <div class="action-buttons">
+            <a href="{{ m['source_url'] }}" target="_blank">
+              <i class="fas fa-external-link-alt"></i> View Recipe
+            </a>
+            <a href="{{ url_for('meal_detail', title=m['title']) }}">
+              <i class="fas fa-info-circle"></i> Details
+            </a>
+          </div>
+        </div>
       </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3>🛒 Your Grocery Store List</h3>
+  <ul class="store-list">
+  {% for item in results['stores'].split('\n') %}
+    {% set clean = item.lstrip('- ') %}
+    {% if clean %}
+      {# split at the first “: ” #}
+      {% set name, sep, desc = clean.partition(': ') %}
+      <li>
+        <strong>{{ name }}</strong>{{ sep }}{{ desc }}
+      </li>
     {% endif %}
+  {% endfor %}
+</ul>
+{% endif %}
   </div>
 </main>
 
