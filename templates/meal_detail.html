@@ -26,33 +26,32 @@
     </div>
   </div>
 
-  <div class="detail-wrapper" style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem;">
-    <div class="detail-card" style="flex:1; min-width:250px;">
-      <h3>Step‑by‑step Instructions</h3>
-      {% if instructions %}
-        <ol>
-          {% for step in instructions %}
-            <li>{{ step }}</li>
-          {% endfor %}
-        </ol>
-      {% else %}
-        <p><em>No instructions available.</em></p>
-      {% endif %}
-    </div>
-
-    <div class="detail-card" style="flex:1; min-width:250px;">
-      <h3>Shopping List</h3>
-      {% if shopping_list %}
-        <ul>
-          {% for item in shopping_list %}
-            <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p><em>No shopping list generated.</em></p>
-      {% endif %}
-    </div>
+<div class="detail‑wrapper">
+    <div class="detail‑card">
+    <h3>Ingredients</h3>
+    {% if ingredients %}
+      <ul>
+        {% for ing in ingredients %}
+          <li>{{ ing }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><em>No ingredients available.</em></p>
+    {% endif %}
   </div>
+    <div class="detail‑card">
+        <h3>Step‑by‑step Instructions</h3>
+        {% if instructions %}
+        <ol>
+            {% for step in instructions %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p><em>No instructions available.</em></p>
+        {% endif %}
+    </div>
+</div>
 
   <div class="restaurant-notes" style="margin-top:2rem;">
     <h3>My Notes</h3>

@@ -13,6 +13,7 @@ from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 import urllib.parse
 from prepngo.database_functions import init_db
 from flask import jsonify
+import json
 
 # helper for dashboard
 from shared.pantry import (
@@ -417,17 +418,15 @@ def meal_detail(title):
         return redirect(url_for("prep"))
 
     # parse JSON fields if you stored them as JSON strings
-    import json
-    instructions = json.loads(meal.get("instructions","[]"))
-    shopping_list = json.loads(meal.get("shopping_list","[]"))
+    instructions = json.loads(meal.get("instructions", "[]"))
+    ingredients  = json.loads(meal.get("ingredients",  "[]"))
     current_notes = get_meal_notes(user_id, title)
 
-    return render_template(
-      "meal_detail.html",
-       meal=meal,
-       instructions=instructions,
-       shopping_list=shopping_list,
-       current_notes=current_notes
+    return render_template("meal_detail.html",
+        meal=meal,
+        instructions=instructions,
+        ingredients=ingredients,
+        current_notes=current_notes
     )
 
 

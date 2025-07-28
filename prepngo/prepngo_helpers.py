@@ -7,18 +7,70 @@ from sqlalchemy import text
 
 
 # Run the PrepnGo meal planner and return the meal results
+
 def get_prepngo_meals(user_input, user_id):
-    meals = run_prepngo_main(user_input)
-    return meals
+    results = run_prepngo_main(user_input)
+    meals   = results.get("meals", [])
+
+    for m in meals:
+        # --- locate the recipe ID ---
+        # adjust this if your meal dict uses a different key
+        recipe_id = m.get("id") or m.get("spoon_id")
+        if not recipe_id:
+            # if you encoded the ID in the URL, you could parse it out:
+            #   recipe_id = extract_from(m.get("source_url"))
+            m["ingredients"]  = []
+            m["instructions"] = []
+            continue
+
+        # --- fetch the full recipe information ---
+        info = requests.get(
+            f"https://api.spoonacular.com/recipes/{recipe_id}/information",
+            params={"apiKey": SPOON_KEY, "includeNutrition": False}
+        ).json()
+
+        # pull ingredient lines
+        m["ingredients"] = [
+            ing.get("original", "").strip()
+            for ing in info.get("extendedIngredients", [])
+        ]
+
+        # pull step‑by‑step instructions
+        instr = []
+        for block in info.get("analyzedInstructions", []):
+            for step in block.get("steps", []):
+                text = step.get("step", "").strip()
+                if text:
+                    instr.append(text)
+        m["instructions"] = instr
+
+    results["meals"] = meals
+    return results
+
 
 
 # Save meal results and associated request data into the database
 def save_prepngo_results(meals, user_input, user_id):
+    migrate_meals_notes_table()
+
+    for m in meals:
+        # build step list
+        instr_blocks = m.get("analyzedInstructions", [])
+        steps = [s["step"]
+                 for b in instr_blocks
+                 for s in b.get("steps", [])]
+        m["instructions"] = json.dumps(steps)
+
+        # build ingredients list
+        ingr = m.get("extendedIngredients", [])
+        m["ingredients"] = json.dumps([i["original"] for i in ingr])
+
+        m["user_id"] = user_id
+
     conn = init_db('preprn.db')
-    req_id = save_request(conn, user_id, float(user_input['budget']), int(user_input['servings']), user_input.get('diets', []))
+    req_id = save_request(...)
     save_meals(conn, req_id, meals)
     conn.close()
-
 
 # Retrieve saved meal recommendations for a user
 def get_saved_prepngo(user_id):
@@ -64,15 +116,14 @@ def migrate_meals_notes_table():
     """Add notes, instructions, shopping_list columns to meals table if missing."""
     with engine.connect() as conn:
         for col, typ in [
-            ("notes", "TEXT DEFAULT ''"),
-            ("user_id", "INTEGER")
+            ("notes",         "TEXT DEFAULT ''"),
+            ("instructions",  "TEXT DEFAULT ''"),
+            ("ingredients",   "TEXT DEFAULT ''"),
+            ("user_id",       "INTEGER"),
         ]:
             try:
-                # try selecting the column
                 conn.execute(text(f"SELECT {col} FROM meals LIMIT 1"))
-                print(f"Column `{col}` already exists.")
             except Exception:
-                print(f"Adding missing column `{col}` to meals table...")
                 conn.execute(text(f"ALTER TABLE meals ADD COLUMN {col} {typ}"))
                 conn.commit()
                 print(f"✅ Added `{col}` column.")
