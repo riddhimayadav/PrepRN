@@ -20,7 +20,8 @@
           <span class="price">🍽️ {{ meal.meal_type }}</span>
         {% endif %}
         <button class="heart-btn-inline"
-                onclick="toggleMealLove('{{ meal.title }}','{{ meal.source_url }}', this)">
+            data-name="{{ meal.title }}"
+            data-url="{{ meal.source_url }}">
           {% if meal.get('loved') %}
             <i class="fas fa-heart" style="color: red;"></i>
           {% else %}
@@ -133,21 +134,37 @@
 // Meal data for API calls
 const mealTitle = "{{ meal.title }}";
 
-// AJAX toggle for "love" heart on meal
-function toggleMealLove(name, url, button) {
-  fetch('/love_meal', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ name, url })
-  })
-  .then(r => r.json())
-  .then(data => {
-    button.innerHTML = data.loved
-      ? '<i class="fas fa-heart" style="color: red;"></i>'
-      : '<i class="far fa-heart"></i>';
-  })
-  .catch(console.error);
-}
+document.addEventListener('click', function(e) {
+  const button = e.target.closest('.heart-btn-inline');
+  if (button && button.dataset.name && button.dataset.url) {
+    const name = button.dataset.name;
+    const url = button.dataset.url;
+
+    button.disabled = true;
+    button.style.opacity = '0.6';
+
+    fetch('/love_meal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, url })
+    })
+    .then(res => res.json())
+    .then(data => {
+      button.innerHTML = data.loved
+        ? '<i class="fas fa-heart" style="color: red;"></i>'
+        : '<i class="far fa-heart"></i>';
+    })
+    .catch(err => {
+      console.error('Error updating love status:', err);
+      alert('Failed to update favorite. Please try again.');
+    })
+    .finally(() => {
+      button.disabled = false;
+      button.style.opacity = '1';
+    });
+  }
+});
+
 
 // Initialize character counter on page load
 document.addEventListener('DOMContentLoaded', function() {

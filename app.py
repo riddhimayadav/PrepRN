@@ -502,9 +502,19 @@ def love_meal():
             meal_name, 
             meal_url
         )
+
+        # Sync it to session["prep_results"] if it exists
+        if "prep_results" in session:
+            meals = session["prep_results"].get("meals", [])
+            for m in meals:
+                if m.get("title") == meal_name:
+                    m["loved"] = new_loved_status
+            session.modified = True  # Ensure Flask updates session
+
         return {"loved": new_loved_status}
     except Exception as e:
         return {"error": str(e)}, 500
+
 
 
 @app.route("/update_restaurant_notes", methods=["POST"])

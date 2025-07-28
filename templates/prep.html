@@ -151,7 +151,8 @@
         <div class="rating-price-inline">
           <span class="price">💰 ${{ "%.2f"|format(m['price']) }}</span>
           <button class="heart-btn-inline"
-                  onclick="toggleMealLove('{{ m['title'] }}','{{ m['source_url'] }}', this)">
+            data-name="{{ m['title'] }}"
+            data-url="{{ m['source_url'] }}">
             {% if m.get('loved') %}
               <i class="fas fa-heart" style="color:red"></i>
             {% else %}
@@ -195,7 +196,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1) show‐loading helper (called via onsubmit="return showLoading(event)")
+    // 1) Show loading spinner and delay submit
     window.showLoading = function(e) {
       e.preventDefault();
       document.getElementById("loading-msg").style.display = "block";
@@ -204,19 +205,16 @@
       return false;
     };
 
-    // 2) if we've got recommendations, scroll them into view
+    // 2) Scroll to recommendations if present
     const rec = document.getElementById("recommendations");
     if (rec) rec.scrollIntoView({ behavior: "smooth" });
 
-    // 3) when grocery‑radio changes, toggle budget vs pantry
+    // 3) Toggle budget/pantry view
     document.querySelectorAll('input[name="grocery"]').forEach(radio => {
       radio.addEventListener('change', e => {
         const groceryYes = e.target.value === 'yes';
-        // show budget input only if "yes"
         document.getElementById('budget-group').style.display = groceryYes ? 'block' : 'none';
-        // show pantry list only if "no"
         document.getElementById('pantry-group').style.display = groceryYes ? 'none' : 'block';
-        // clear any leftover budget if hiding
         if (!groceryYes) {
           document.getElementById('budget-input').value = '';
         }
@@ -224,14 +222,13 @@
     });
   });
 
-  // GPS Location functionality - adapted from foodies.html
+  // 4) Get GPS location
   let locationFound = false;
 
   function getLocation() {
     const gpsBtn = document.getElementById('gpsBtn');
     const locationInput = document.getElementById('locationInput');
-    
-    // Update button to show loading state while retrieving location
+
     gpsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
     gpsBtn.disabled = true;
     gpsBtn.style.backgroundColor = '#ACB288';
@@ -241,18 +238,14 @@
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         function(position) {
-          // Success - got GPS coordinates
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-          
-          // Store coordinates in hidden fields
+
           document.getElementById('latitude').value = latitude;
           document.getElementById('longitude').value = longitude;
-
-          // Put coordinates in location field as backup
           locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
           locationInput.placeholder = 'GPS location found';
-          
+
           locationFound = true;
           gpsBtn.innerHTML = '<i class="fas fa-check"></i> Location Found!';
           gpsBtn.style.backgroundColor = '#ACB288';
@@ -261,25 +254,23 @@
           gpsBtn.disabled = false;
         },
         function(error) {
-          // Error or denied
           console.error('GPS Error:', error);
           gpsBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS Unavailable';
           gpsBtn.style.backgroundColor = '#FB4141';
           gpsBtn.style.color = 'white';
           gpsBtn.style.pointerEvents = 'auto';
           gpsBtn.disabled = false;
-          
+
           alert('Unable to get your location. Please enter your address manually.');
           locationInput.focus();
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000 // 5 minutes
+          maximumAge: 300000
         }
       );
     } else {
-      // Browser doesn't support geolocation
       gpsBtn.innerHTML = '<i class="fas fa-times"></i> Not Supported';
       gpsBtn.style.backgroundColor = '#FB4141';
       gpsBtn.style.color = 'white';
@@ -289,38 +280,53 @@
     }
   }
 
-  // Clear GPS data when user types in location input
+  // 5) Clear GPS data when location input changes
   document.getElementById('locationInput').addEventListener('input', function() {
     if (locationFound || document.getElementById('latitude').value) {
       document.getElementById('latitude').value = '';
       document.getElementById('longitude').value = '';
       locationFound = false;
-      
+
       const gpsBtn = document.getElementById('gpsBtn');
       gpsBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Use My Current Location';
       gpsBtn.style.backgroundColor = '';
       gpsBtn.style.color = '';
       gpsBtn.style.pointerEvents = 'auto';
       gpsBtn.disabled = false;
-      
+
       this.placeholder = 'Enter address, city, or zip code';
     }
   });
 
-  // 4) AJAX toggle for "love" heart on each meal
+  // 6) Toggle loved state on heart click (event delegation)
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.heart-btn-inline');
+    if (btn && btn.hasAttribute('data-name') && btn.hasAttribute('data-url')) {
+      e.preventDefault();
+      const name = btn.getAttribute('data-name');
+      const url = btn.getAttribute('data-url');
+      toggleMealLove(name, url, btn);
+    }
+  });
+
+  // 7) Reusable AJAX heart toggle function
   function toggleMealLove(name, url, button) {
     fetch('/love_meal', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, url })
     })
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
       button.innerHTML = data.loved
         ? '<i class="fas fa-heart" style="color: red;"></i>'
         : '<i class="far fa-heart"></i>';
     })
-    .catch(console.error);
+    .catch(err => {
+      console.error('Error:', err);
+      alert('Failed to save favorite. Please try again.');
+    });
   }
 </script>
+
 {% endblock %}

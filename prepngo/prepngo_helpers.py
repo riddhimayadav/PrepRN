@@ -16,6 +16,7 @@ from prepngo.database_functions import (
     get_user_loved_meals,
 )
 from FoodiesRN.run_foodiesrn import engine
+import logging
 
 
 # Make sure your SPOON_API_KEY is loaded into the env
@@ -43,7 +44,7 @@ def get_prepngo_meals(user_input, user_id):
                 recipe_id = match.group(1)
 
         if not recipe_id:
-            app.logger.warning(f"⚠️  No recipe_id for {m.get('title')}")
+            logging.warning(f"⚠️  No recipe_id for {m.get('title')}")
             m["ingredients"]  = []
             m["instructions"] = []
             continue
