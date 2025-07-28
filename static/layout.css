@@ -1,75 +1,214 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
+}
 
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #fafafa;
-  }
+/* Modern navigation bar */
+nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 2rem;
+  border-bottom: 1px solid rgba(172, 178, 136, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(172, 178, 136, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  nav {
-    background-color: #ffffff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .nav-left .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: black;
-  }
-
-  .nav-right a {
-    margin-left: 25px;
-    font-size: 1.2rem;
-    color: #333;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .nav-right a i {
-    color: #333;
-    transition: color 0.2s ease;
-  }
-
-  .nav-right a:hover,
-  .nav-right a:hover i {
-    color: #ACB288;
-  }
-
-  hr {
-    margin: 0;
-    border: none;
-    border-top: 1px solid #ddd;
-  }
-
+/* Enhanced logo styling */
+.nav-left .logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ACB288 0%, #5f7c47 50%, #9ba47a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  transition: all 0.3s ease;
+}
 
 .logo-link {
   text-decoration: none;
   color: inherit;
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo-link:hover {
   text-decoration: none;
-}
-
-.logo-link .logo {
-  cursor: pointer;
-  transition: color 0.3s ease;
+  transform: translateY(-1px);
 }
 
 .logo-link:hover .logo {
-  color: #9ba47a; /* Slightly darker green on hover */
+  background: linear-gradient(135deg, #9ba47a 0%, #ACB288 50%, #5f7c47 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Modern navigation links */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .nav-right a {
-  color: inherit;
+  margin-left: 0;
+  font-size: 1.1rem;
+  color: #4a5a4d;
   text-decoration: none;
-  margin-left: 1rem;
-  transition: color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  font-weight: 500;
 }
 
+/* Icon styling */
+.nav-right a i {
+  color: #4a5a4d;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.2rem;
+}
+
+/* Modern hover effects */
 .nav-right a:hover {
   color: #ACB288;
+  background: rgba(172, 178, 136, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(172, 178, 136, 0.15);
+}
+
+.nav-right a:hover i {
+  color: #ACB288;
+  transform: scale(1.1);
+}
+
+/* Special styling for "Get Started" button */
+.nav-right a:not([href*="/"]):not([class]):last-child,
+.nav-right a[href*="login_view"] {
+  background: linear-gradient(135deg, #ACB288 0%, #9ba47a 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 15px rgba(172, 178, 136, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-right a[href*="login_view"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.nav-right a[href*="login_view"]:hover {
+  background: linear-gradient(135deg, #9ba47a 0%, #ACB288 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(172, 178, 136, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.nav-right a[href*="login_view"]:hover::before {
+  left: 100%;
+}
+
+/* Active state for navigation items */
+.nav-right a:active {
+  transform: translateY(0);
+}
+
+/* Remove the old HR styling since we're using border on nav */
+hr {
+  display: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  nav {
+    padding: 0.5rem 1.5rem;
+  }
+  
+  .nav-left .logo {
+    font-size: 1.6rem;
+  }
+  
+  .nav-right {
+    gap: 0.25rem;
+  }
+  
+  .nav-right a {
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+  }
+  
+  .nav-right a i {
+    font-size: 1.1rem;
+  }
+  
+  .nav-right a[href*="login_view"] {
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  nav {
+    padding: 0.4rem 1rem;
+  }
+  
+  .nav-left .logo {
+    font-size: 1.4rem;
+  }
+  
+  .nav-right a {
+    padding: 0.4rem 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .nav-right a[href*="login_view"] {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
+}
+
+/* Subtle animation on page load */
+@keyframes navSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+nav {
+  animation: navSlideDown 0.6s ease-out;
 }
