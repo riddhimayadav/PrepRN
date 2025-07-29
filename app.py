@@ -564,13 +564,43 @@ def update_restaurant_notes_route():
 
 @app.route("/update_meal_notes", methods=["POST"])
 def update_meal_notes_route():
+    print(f"[DEBUG] Update meal notes endpoint called")
+    
     if "user_id" not in session:
-        return {"error":"Not logged in"}, 401
-    data = request.get_json()
-    title = data.get("title")
-    notes = data.get("notes", "").strip()
-    success = update_meal_notes(session["user_id"], title, notes)
-    return {"success": success}
+        print(f"[DEBUG] No user_id in session")
+        return {"error": "Not logged in"}, 401
+    
+    try:
+        data = request.get_json()
+        print(f"[DEBUG] Received data: {data}")
+        
+        if not data:
+            print(f"[DEBUG] No JSON data received")
+            return {"error": "No data provided"}, 400
+        
+        title = data.get("title")
+        notes = data.get("notes", "").strip()
+        user_id = session["user_id"]
+        
+        print(f"[DEBUG] Processing: user_id={user_id}, title='{title}', notes_length={len(notes)}")
+        
+        if not title:
+            print(f"[DEBUG] No title provided")
+            return {"error": "Title is required"}, 400
+        
+        # Import here to avoid circular imports
+        from prepngo.prepngo_helpers import update_meal_notes
+        
+        success = update_meal_notes(user_id, title, notes)
+        print(f"[DEBUG] Update meal notes result: {success}")
+        
+        return {"success": success}
+        
+    except Exception as e:
+        print(f"[DEBUG] Exception in update_meal_notes_route: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}, 500
 
 
 @app.route("/delete_restaurant", methods=["POST"])

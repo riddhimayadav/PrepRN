@@ -185,20 +185,39 @@ def migrate_meals_notes_table():
 def update_meal_notes(user_id, title, notes):
     migrate_meals_notes_table()
     with engine.connect() as conn:
-        conn.execute(text("""
+        # Fixed query: use JOIN to connect meals -> requests -> user_id
+        result = conn.execute(text("""
             UPDATE meals 
                SET notes = :notes 
-             WHERE user_id = :uid AND title = :title
+             WHERE title = :title 
+               AND request_id IN (
+                   SELECT id FROM requests WHERE user_id = :uid
+               )
         """), {"notes": notes, "uid": user_id, "title": title})
         conn.commit()
-    return True
+        
+        # Check if any rows were affected
+        if result.rowcount > 0:
+            print(f"[DEBUG] Successfully updated notes for meal '{title}' (user {user_id})")
+            return True
+        else:
+            print(f"[DEBUG] No meal found with title '{title}' for user {user_id}")
+            return False
 
 def get_meal_notes(user_id, title):
     migrate_meals_notes_table()
     with engine.connect() as conn:
+        # Fixed query: use JOIN to connect meals -> requests -> user_id
         row = conn.execute(text("""
             SELECT notes 
               FROM meals 
-             WHERE user_id = :uid AND title = :title
+             WHERE title = :title 
+               AND request_id IN (
+                   SELECT id FROM requests WHERE user_id = :uid
+               )
+             LIMIT 1
         """), {"uid": user_id, "title": title}).fetchone()
-    return row[0] if row else ""
+    
+    result = row[0] if row else ""
+    print(f"[DEBUG] Retrieved notes for '{title}' (user {user_id}): '{result}'")
+    return result
