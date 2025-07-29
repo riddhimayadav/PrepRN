@@ -45,21 +45,23 @@
       {% endif %}
     </div>
   </nav>
-  <hr>
 
-  {% block content %}{% endblock %}
-
-<footer>
-  <div class="footer-content">
-    <span class="footer-logo">PrepRN</span>
-    <span class="footer-text">Made with love for smarter eating • © {{ 2025 }}</span>
-    <div class="footer-links">
-      <a href="{{ url_for('dashboard') }}"><i class="fas fa-user-circle"></i> Dashboard</a>
-      <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-star"></i> My Picks</a>
-      <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Log Out</a>
-    </div>
+  <!-- Wrap the main content in a div with flex: 1 -->
+  <div class="main-content">
+    {% block content %}{% endblock %}
   </div>
-</footer>
+
+  <footer>
+    <div class="footer-content">
+      <span class="footer-logo">PrepRN</span>
+      <span class="footer-text">Made with love for smarter eating • © {{ 2025 }}</span>
+      <div class="footer-links">
+        <a href="{{ url_for('dashboard') }}"><i class="fas fa-user-circle"></i> Dashboard</a>
+        <a href="{{ url_for('my_recommendations') }}"><i class="fas fa-star"></i> My Picks</a>
+        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>
