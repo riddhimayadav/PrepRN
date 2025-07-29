@@ -81,10 +81,10 @@
         {% endfor %}
       </ul>
         {% else %}
-          <p><em>Your pantry is empty.</em></p>
+          <div class="empty-field" style="text-align: center;"><em>Your pantry is empty.</em></div>
         {% endif %}
-        <p style="margin-top:0.5rem;">
-          <a href="{{ url_for('dashboard') }}">Go to Dashboard to edit your pantry →</a>
+        <p style="margin-top:0.5rem; text-align: center;">
+          <a href="{{ url_for('dashboard') }}" class="dashboard-btn">Go to Dashboard to edit your pantry →</a>
         </p>
       </div>
 
@@ -120,15 +120,18 @@
       <!-- Dietary Restrictions (pulled from dashboard) -->
       <div class="input-group">
         <label><i class="fas fa-apple-alt"></i> Dietary Restrictions:</label>
-        <div class="saved-restrictions">
-          {% if restrictions %}
-            {{ restrictions | join(', ') }}
-          {% else %}
-            <em>None set. You can update these on your
-              <a href="{{ url_for('dashboard') }}">Dashboard</a>.
-            </em>
-          {% endif %}
-        </div>
+        {% if restrictions %}
+          <ul class="pantry-list">
+            {% for restriction in restrictions %}
+              <li>{{ restriction }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="empty-field" style="text-align: center;"><em>No dietary restrictions set.</em></div>
+        {% endif %}
+        <p style="margin-top:0.5rem; text-align: center;">
+          <a href="{{ url_for('dashboard') }}" class="dashboard-btn">Go to Dashboard to edit your restrictions →</a>
+        </p>
       </div>
 
       <!-- Submit -->

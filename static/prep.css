@@ -283,50 +283,52 @@ main {
 /* Pantry list styling */
 .pantry-list {
   list-style: none;
-  padding: 0;
-  margin: 0.5rem 0;
-  background: rgba(172, 178, 136, 0.05);
-  border-radius: 12px;
-  padding: 1rem;
+  padding: 1rem 1.2rem;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(172, 178, 136, 0.2);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .pantry-list li {
-  padding: 0.5rem 0;
+  padding: 0.5rem 0.8rem;
   color: var(--text-medium);
   font-weight: 500;
-  border-bottom: 1px solid rgba(172, 178, 136, 0.1);
+  background: rgba(172, 178, 136, 0.1);
+  border: 1px solid rgba(172, 178, 136, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-block;
 }
 
-.pantry-list li:last-child {
-  border-bottom: none;
+.pantry-list li:hover {
+  background: rgba(172, 178, 136, 0.15);
+  border-color: rgba(172, 178, 136, 0.3);
+  transform: translateY(-1px);
 }
 
-/* Saved restrictions styling */
-.saved-restrictions {
-  background: rgba(172, 178, 136, 0.05);
-  padding: 1rem;
-  border-radius: 12px;
+/* Empty field styling (for pantry and dietary restrictions when empty) */
+.empty-field {
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(172, 178, 136, 0.2);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
   color: var(--text-medium);
   font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.saved-restrictions a {
-  color: var(--primary-green);
-  text-decoration: none;
-  font-weight: 600;
-}
 
-.saved-restrictions a:hover {
-  text-decoration: underline;
-}
 
-/* Dashboard link styling */
-#pantry-group p {
-  margin-top: 1rem;
-  text-align: center;
-}
-
-#pantry-group a {
+/* Unified Dashboard button styling */
+.dashboard-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -343,7 +345,7 @@ main {
   overflow: hidden;
 }
 
-#pantry-group a::before {
+.dashboard-btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -354,7 +356,7 @@ main {
   transition: left 0.6s;
 }
 
-#pantry-group a:hover {
+.dashboard-btn:hover {
   background: linear-gradient(135deg, rgba(172, 178, 136, 0.15), rgba(172, 178, 136, 0.1));
   border-color: rgba(172, 178, 136, 0.4);
   color: var(--dark-green);
@@ -363,7 +365,7 @@ main {
   text-decoration: none;
 }
 
-#pantry-group a:hover::before {
+.dashboard-btn:hover::before {
   left: 100%;
 }
 
