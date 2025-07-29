@@ -23,6 +23,7 @@
       action="{{ url_for('prep') }}"
       onsubmit="return showLoading(event)"
     >
+
       <!-- Location with GPS -->
       <div class="input-group">
         <label><i class="fas fa-map-marker-alt"></i> Location:</label>
@@ -66,8 +67,8 @@
           name="budget"
           placeholder="$0.00"
           id="budget-input"
-          required
         >
+
       </div>
 
       <!-- no -> pantry‑only section -->
@@ -201,7 +202,7 @@
       e.preventDefault();
       document.getElementById("loading-msg").style.display = "block";
       document.getElementById("eat-in-form").style.opacity = "0.5";
-      setTimeout(() => e.target.submit(), 100);
+      setTimeout(() => document.getElementById("eat-in-form").submit(), 100);
       return false;
     };
 

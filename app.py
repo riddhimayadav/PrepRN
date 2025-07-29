@@ -317,6 +317,7 @@ def prep():
 
     # —— POST: handle form submission —— 
     if request.method == "POST":
+        print("[DEBUG] POST received on /prep")
         grocery = request.form.get("grocery")  # "yes" or "no"
         user_input = {
             "location":  request.form.get("location","").strip(),
@@ -331,6 +332,16 @@ def prep():
             "latitude":  request.form.get("latitude"),
             "longitude": request.form.get("longitude")
         }
+
+        # Sanitize budget BEFORE calling get_prepngo_meals
+        if user_input["budget"] == "":
+            user_input["budget"] = 0.0
+        else:
+            try:
+                user_input["budget"] = float(user_input["budget"])
+            except ValueError:
+                flash("Invalid budget value.")
+                return redirect(url_for("prep"))
 
         # —— Validation —— 
         if not user_input["servings"]:
@@ -348,7 +359,15 @@ def prep():
 
         # —— Run PrepnGo & stash results —— 
         start   = time.time()
-        results = get_prepngo_meals(user_input, user_id)
+        try:
+            results = get_prepngo_meals(user_input, user_id)
+            print("[DEBUG] PrepNGo results:", results)
+        except Exception as e:
+            print("[ERROR] PrepNGo failed:", e)
+            flash("Something went wrong generating your meal plan.")
+            return redirect(url_for("prep"))
+
+
         results["duration"] = f"{time.time() - start:.2f}"
 
         save_prepngo_results(results["meals"], user_input, user_id)

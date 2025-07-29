@@ -96,10 +96,15 @@ def save_prepngo_results(meals, user_input, user_id):
         m["instructions"] = json.dumps(m.get("instructions", []))
 
     conn  = init_db("preprn.db")
-    req_id= save_request(conn, user_id,
-                         float(user_input.get("budget", 0)),
-                         int(user_input.get("servings", 1)),
-                         user_input.get("diets", []))
+    # If grocery is disabled, use 0 as budget fallback
+    budget_str = str(user_input.get("budget") or "0").strip()
+    budget = float(budget_str) if budget_str else 0.0
+
+    req_id = save_request(conn, user_id,
+                        budget,
+                        int(user_input.get("servings", 1)),
+                        user_input.get("diets", []))
+
     save_meals(conn, req_id, meals)
     conn.close()
 

@@ -97,7 +97,7 @@ def generate_shopping_list_with_genai(recipes: List[dict]) -> str:
     return resp.text.strip()
 
 def main(user_input: dict) -> dict:
-    budget = float(user_input["budget"])
+    budget = float(user_input["budget"]) if user_input["budget"] else 0.0
     servings = int(user_input["servings"])
     diets = user_input.get('diets', [])
     meal_type = user_input.get("meal_type", "")
@@ -166,20 +166,27 @@ def main(user_input: dict) -> dict:
     if grocery.lower() == "no":
         from prepngo.spoonacular_utils import find_by_ingredients, get_recipe_information
 
+        print("[DEBUG] Pantry ingredients:", pantry)
         basic_meals = find_by_ingredients(pantry, number=5)
+        print("[DEBUG] Spoonacular returned:", basic_meals)
+
+        import time
 
         meals = []
         for item in basic_meals:
-            full_details = get_recipe_information(item['id'])
-            meal = {
-                "title": full_details.get("title", ""),
-                "summary": get_summary(full_details.get("title", "")),
-                "price": 0.0,  # pantry meals are free
-                "diets": full_details.get("diets", []),
-                "source_url": full_details.get("sourceUrl", ""),
-                "meal_type": meal_type  # ADD THIS LINE
-            }
-            meals.append(meal)
+            try:
+                full_details = get_recipe_information(item['id'])
+                meal = {
+                    "title": full_details.get("title", ""),
+                    "summary": get_summary(full_details.get("title", "")),
+                    "price": 0.0,
+                    "diets": full_details.get("diets", []),
+                    "source_url": full_details.get("sourceUrl", "")
+                }
+                meals.append(meal)
+                time.sleep(1.2)  # Prevent hitting rate limit (esp. on free tier)
+            except Exception as e:
+                print("[ERROR] Failed to fetch details for recipe:", item['id'], e)
 
         return {
             "meals": meals,
