@@ -1,7 +1,25 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Remove the background from body and let html handle it */
+  /* Add flexbox properties */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Use viewport height instead of 100% */
+}
+
+/* Move background to html element and make it cover full page */
+html {
+  height: 100%;
   background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
+  background-attachment: fixed; /* This ensures gradient covers entire viewport */
+}
+
+/* Alternative approach - apply background to both html and body for better coverage */
+html, body {
+  background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 /* Modern navigation bar */
@@ -223,7 +241,8 @@ footer {
   text-align: center;
   font-size: 0.95rem;
   color: #4a5a4d;
-  margin-top: 4rem;
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 .footer-content {
@@ -292,42 +311,8 @@ footer {
   }
 }
 
-/* Make html and body full height */
-html, body {
-  height: 100%;
-  margin: 0;
-}
-
-/* Update body to use flexbox */
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
-  /* Add flexbox properties */
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh; /* Use viewport height instead of 100% */
-}
-
 /* Create a main content wrapper that takes up remaining space */
 .main-content {
   flex: 1; /* This will take up all available space between nav and footer */
   padding-bottom: 3em;
-}
-
-/* Update footer to remove margin-top since we're using flexbox now */
-footer {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(172, 178, 136, 0.1);
-  box-shadow: 0 -4px 16px rgba(172, 178, 136, 0.05);
-  padding: 1.5rem 2rem;
-  text-align: center;
-  font-size: 0.95rem;
-  color: #4a5a4d;
-  /* Remove margin-top: 4rem; since flexbox handles spacing */
-  margin-top: 0;
-  /* Ensure footer doesn't shrink */
-  flex-shrink: 0;
 }
