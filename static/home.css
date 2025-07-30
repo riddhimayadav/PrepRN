@@ -14,7 +14,6 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Subtle background pattern overlay with food-themed elements */
 .dashboard-container::before {
   content: '';
   position: absolute;
@@ -30,7 +29,6 @@
   pointer-events: none;
 }
 
-/* Add subtle food icons as decorative elements */
 .dashboard-container::after {
   content: '🍽️ 🥗 🍕 🥘 🍱 🥙 🍜 🥐 🍓 🥑';
   position: absolute;
@@ -118,7 +116,6 @@
   flex-wrap: wrap;
 }
 
-/* Modern button styling */
 button {
   background: linear-gradient(135deg, #ACB288 0%, #9ba47a 100%);
   color: white;
@@ -139,7 +136,6 @@ button {
   min-width: 160px;
 }
 
-/* Button shine effect */
 button::before {
   content: '';
   position: absolute;
@@ -170,7 +166,6 @@ button:active {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Special styling for dashboard button */
 .button-row:last-child button {
   background: linear-gradient(135deg, #5f7c47 0%, #4a6338 100%);
   box-shadow: 
@@ -185,7 +180,6 @@ button:active {
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Fade in animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -197,7 +191,6 @@ button:active {
   }
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;

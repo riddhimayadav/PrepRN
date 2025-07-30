@@ -1,28 +1,23 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* Remove the background from body and let html handle it */
-  /* Add flexbox properties */
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Use viewport height instead of 100% */
+  min-height: 100vh; 
 }
 
-/* Move background to html element and make it cover full page */
 html {
   height: 100%;
   background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
   background-attachment: fixed; /* This ensures gradient covers entire viewport */
 }
 
-/* Alternative approach - apply background to both html and body for better coverage */
 html, body {
   background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Modern navigation bar */
 nav {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -41,7 +36,6 @@ nav {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Enhanced logo styling */
 .nav-left .logo {
   font-size: 1.8rem;
   font-weight: 800;
@@ -73,7 +67,6 @@ nav {
   background-clip: text;
 }
 
-/* Modern navigation links */
 .nav-right {
   display: flex;
   align-items: center;
@@ -97,14 +90,12 @@ nav {
   font-weight: 500;
 }
 
-/* Icon styling */
 .nav-right a i {
   color: #4a5a4d;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1.2rem;
 }
 
-/* Modern hover effects */
 .nav-right a:hover {
   color: #ACB288;
   background: rgba(172, 178, 136, 0.08);
@@ -117,7 +108,6 @@ nav {
   transform: scale(1.1);
 }
 
-/* Special styling for "Get Started" button */
 .nav-right a:not([href*="/"]):not([class]):last-child,
 .nav-right a[href*="login_view"] {
   background: linear-gradient(135deg, #ACB288 0%, #9ba47a 100%);
@@ -156,17 +146,14 @@ nav {
   left: 100%;
 }
 
-/* Active state for navigation items */
 .nav-right a:active {
   transform: translateY(0);
 }
 
-/* Remove the old HR styling since we're using border on nav */
 hr {
   display: none;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   nav {
     padding: 0.5rem 1.5rem;
@@ -215,7 +202,6 @@ hr {
   }
 }
 
-/* Subtle animation on page load */
 @keyframes navSlideDown {
   from {
     opacity: 0;
@@ -295,7 +281,6 @@ footer {
   color: #ACB288;
 }
 
-/* Responsive */
 @media (max-width: 600px) {
   footer {
     font-size: 0.9rem;
@@ -311,8 +296,7 @@ footer {
   }
 }
 
-/* Create a main content wrapper that takes up remaining space */
 .main-content {
-  flex: 1; /* This will take up all available space between nav and footer */
+  flex: 1;
   padding-bottom: 3em;
 }

@@ -11,7 +11,7 @@ import time
 import json
 
 
-# Load environment variables
+# load environment variables
 load_dotenv()
 YELP_KEY = os.getenv("YELP_KEY")
 GENAI_KEY = os.getenv("GENAI_KEY")
@@ -19,9 +19,9 @@ print("GENAI_KEY in Flask:", GENAI_KEY)
 GEOAPIFY_KEY = os.getenv("GEOAPIFY_KEY")
 
 
-# Set up SQLAlchemy database engine
+# set up SQLAlchemy database engine
 engine = db.create_engine("sqlite:///preprn.db")
-TABLE_RN = "foodiesrn_recommendations" # Table name for storing recommendations
+TABLE_RN = "foodiesrn_recommendations" # table name for storing recommendations
 
 
 def create_foodiesrn_table():
@@ -71,25 +71,25 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
     
     if not GEOAPIFY_KEY:
         print("WARNING: GEOAPIFY_KEY not found. Distance filtering will use straight-line distance only.")
-        # Calculate straight-line distances as fallback
+        # calculate straight-line distances as fallback
         for restaurant in restaurants:
             if 'coordinates' in restaurant:
                 rest_lat = restaurant['coordinates']['latitude']
                 rest_lng = restaurant['coordinates']['longitude']
                 
-                # Haversine formula for straight-line distance
+                # haversine formula for straight-line distance
                 import math
                 
-                # Convert latitude and longitude from degrees to radians
+                # convert latitude and longitude from degrees to radians
                 lat1, lon1, lat2, lon2 = map(math.radians, [user_lat, user_lng, rest_lat, rest_lng])
                 
-                # Haversine formula
+                # haversine formula
                 dlat = lat2 - lat1
                 dlon = lon2 - lon1
                 a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
                 c = 2 * math.asin(math.sqrt(a))
                 
-                # Radius of earth in kilometers is 6371
+                # radius of earth in kilometers is 6371
                 distance_km = 6371 * c
                 distance_meters = distance_km * 1000
                 
@@ -99,7 +99,7 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
                 print(f"[DEBUG] {restaurant['name']}: {distance_meters / 1609.344:.2f} miles (straight-line)")
         return restaurants
 
-    # Prepare sources and targets for API call
+    # prepare sources and targets for API call
     sources = [{"lat": user_lat, "lon": user_lng}]
     targets = []
     
@@ -116,13 +116,13 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
     
     print(f"[DEBUG] Making Geoapify API call with {len(sources)} sources and {len(targets)} targets")
     
-    # Make API call to Geoapify Route Matrix
+    # make API call to Geoapify Route Matrix
     url = "https://api.geoapify.com/v1/routematrix"
     headers = {
         "Content-Type": "application/json"
     }
     
-    # Request body in JSON format
+    # request body in JSON format
     data = {
         "mode": "drive",
         "sources": sources,
@@ -140,7 +140,7 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
         
         print(f"[DEBUG] Geoapify API response received. Keys: {result.keys()}")
         
-        # Parse results and add to restaurants
+        # parse results and add to restaurants
         if 'sources_to_targets' in result and result['sources_to_targets']:
             matrix = result['sources_to_targets'][0]
             print(f"[DEBUG] Matrix length: {len(matrix)}")
@@ -150,7 +150,7 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
                     route_info = matrix[i]
                     print(f"[DEBUG] Route info for {restaurant['name']}: {route_info}")
                     
-                    # Get driving distance and time
+                    # get driving distance and time
                     if 'distance' in route_info and 'time' in route_info:
                         distance_meters = route_info['distance']
                         time_seconds = route_info['time']
@@ -187,7 +187,7 @@ def calculate_distances_with_geoapify(user_lat, user_lng, restaurants):
         
     except Exception as e:
         print(f"Error calculating distances with Geoapify: {e}")
-        # Fallback to straight-line distance calculation
+        # fallback to straight-line distance calculation
         for restaurant in restaurants:
             if 'coordinates' in restaurant:
                 rest_lat = restaurant['coordinates']['latitude']
@@ -217,15 +217,15 @@ def filter_by_radius(restaurants, radius_miles):
     print(f"[DEBUG] Filtering {len(restaurants)} restaurants by {radius_miles} mile radius")
     
     for restaurant in restaurants:
-        # Use driving distance if available, otherwise use straight-line distance
+        # use driving distance if available, otherwise use straight-line distance
         if restaurant.get('driving_distance_miles') is not None:
             distance_miles = restaurant['driving_distance_miles']
             distance_type = "driving"
         elif restaurant.get('distance_meters') is not None:
-            distance_miles = restaurant['distance_meters'] / 1609.344  # Convert meters to miles
+            distance_miles = restaurant['distance_meters'] / 1609.344  # convert meters to miles
             distance_type = "straight-line"
         else:
-            # No distance data available, skip this restaurant
+            # no distance data available, skip this restaurant
             print(f"[DEBUG] {restaurant['name']}: No distance data available, skipping")
             continue
         
@@ -233,15 +233,15 @@ def filter_by_radius(restaurants, radius_miles):
         
         if distance_miles <= radius_miles:
             filtered.append(restaurant)
-            print(f"[DEBUG] ✅ {restaurant['name']} included (within {radius_miles} miles)")
+            print(f"[DEBUG] [YES] {restaurant['name']} included (within {radius_miles} miles)")
         else:
-            print(f"[DEBUG] ❌ {restaurant['name']} excluded ({distance_miles:.2f} > {radius_miles} miles)")
+            print(f"[DEBUG] [NO] {restaurant['name']} excluded ({distance_miles:.2f} > {radius_miles} miles)")
     
     print(f"[DEBUG] Filtered results: {len(filtered)} restaurants within {radius_miles} miles")
     return filtered
 
 
-# Prompt user repeatedly until they enter a valid input
+# prompt user repeatedly until they enter a valid input
 def get_valid_input(prompt, valid_options):
     while True:
         user_input = input(prompt).capitalize()
@@ -250,7 +250,7 @@ def get_valid_input(prompt, valid_options):
         print("Invalid input. Please choose from:", ", ".join(valid_options))
 
 
-# Collect restaurant search preferences from the user via CLI
+# collect restaurant search preferences from the user via CLI
 def get_user_input():
 
     location = input("\nEnter your city (e.g., Austin, TX): ")
@@ -278,7 +278,7 @@ def get_user_input():
     }
 
 
-# Yelp uses numbers for price ranges
+# yelp uses numbers for price ranges
 price_map = {
     "$": "1",
     "$$": "2",
@@ -287,7 +287,7 @@ price_map = {
 }
 
 
-# Yelp API call to search for restaurants based on user input
+# yelp API call to search for restaurants based on user input
 # https://docs.developer.yelp.com/reference/v3_business_search
 def search_yelp(user_input):
     headers = {
@@ -305,7 +305,7 @@ def search_yelp(user_input):
     if user_input.get("latitude") and user_input.get("longitude"):
         params["latitude"] = user_input["latitude"]
         params["longitude"] = user_input["longitude"]
-        # Remove location param when using coordinates
+        # remove location param when using coordinates
         del params["location"]
 
     url = "https://api.yelp.com/v3/businesses/search"
@@ -339,7 +339,7 @@ def search_yelp(user_input):
         return []
 
 
-# Generate GenAI-powered blurbs for each restaurant
+# generate GenAI-powered blurbs for each restaurant (disabled)
 def generate_blurbs(businesses, user_input):
     model = get_genai_model(GENAI_KEY, model_name="gemini-1.5-flash")
 
@@ -380,14 +380,14 @@ def generate_blurbs(businesses, user_input):
         else:
             blurbs.append(blurb.strip())
 
-    # Ensure we return the same number of blurbs as restaurants
+    # ensure we return the same number of blurbs as restaurants
     while len(blurbs) < len(businesses):
         blurbs.append("No blurb available.")
 
     return blurbs
 
 
-# Clear all saved restaurant recommendations in the DB
+# clear all saved restaurant recommendations in the DB
 def clear_rec_table():
     create_foodiesrn_table()
     with engine.connect() as connection:
@@ -395,7 +395,7 @@ def clear_rec_table():
         connection.commit()
 
 
-# Save new results to the DB only if they don’t already exist
+# save new results to the DB only if they don’t already exist
 def save_to_db(results, user_id):
     create_foodiesrn_table()
     with engine.connect() as connection:
@@ -425,7 +425,7 @@ def save_to_db(results, user_id):
         connection.commit()
 
 
-# Retrieve previously saved recommendations from the DB
+# retrieve previously saved recommendations from the DB
 def view_saved_recommendations(user_id):
     create_foodiesrn_table()
     with engine.connect() as connection:
@@ -460,7 +460,7 @@ def delete_individual_restaurant(user_id, restaurant_name, restaurant_location):
     return True
 
 
-# Remove all saved recommendations for a specific user
+# remove all saved recommendations for a specific user
 def clear_saved_recommendations(user_id):
     create_foodiesrn_table()
     with engine.connect() as connection:
@@ -472,12 +472,12 @@ def clear_saved_recommendations(user_id):
     print("\nAll your saved recommendations have been cleared.")
 
 
-# Toggle love status for a restaurant
+# toggle love status for a restaurant
 def toggle_restaurant_love(user_id, restaurant_name, restaurant_location):
     """Toggle the loved status of a restaurant"""
     create_foodiesrn_table()
     with engine.connect() as connection:
-        # First check if restaurant exists and get current loved status
+        # first check if restaurant exists and get current loved status
         result = connection.execute(
             db.text(f"""
                 SELECT loved FROM {TABLE_RN} 
@@ -487,7 +487,7 @@ def toggle_restaurant_love(user_id, restaurant_name, restaurant_location):
         ).fetchone()
         
         if result:
-            # Toggle the loved status
+            # toggle the loved status
             new_loved_status = not bool(result[0])
             connection.execute(
                 db.text(f"""
@@ -502,7 +502,7 @@ def toggle_restaurant_love(user_id, restaurant_name, restaurant_location):
     return False
 
 
-# Get loved restaurants for a user
+# get loved restaurants for a user
 def get_loved_restaurants(user_id):
     """Get all loved restaurants for a user"""
     create_foodiesrn_table()
@@ -519,14 +519,14 @@ def get_loved_restaurants(user_id):
     return results
 
 
-# Main function to run Yelp + GenAI-based restaurant recommendation pipeline
+# main function to run Yelp + GenAI-based restaurant recommendation pipeline
 def run_restaurant_search(user_input, user_id):
     print("\n🔍 Generating your personalized recommendations...\n")
     start = time.time()
     results = search_yelp(user_input)
     print(f"[TIMER] Yelp API took {time.time() - start:.2f} seconds")
 
-    # Calculate distances if GPS coordinates are provided
+    # calculate distances if GPS coordinates are provided
     if user_input.get("latitude") and user_input.get("longitude"):
         start = time.time()
         results = calculate_distances_with_geoapify(
@@ -536,7 +536,7 @@ def run_restaurant_search(user_input, user_id):
         )
         print(f"[TIMER] Distance calculation took {time.time() - start:.2f} seconds")
         
-        # Filter by radius if specified
+        # filter by radius if specified
         try:
             radius_miles = float(user_input.get("radius", 0))
             if radius_miles > 0:
@@ -576,7 +576,7 @@ def run_restaurant_search(user_input, user_id):
             if 'coordinates' in biz:
                 del biz['coordinates']
 
-        # Check if any of these restaurants are already loved
+        # check if any of these restaurants are already loved
         with engine.connect() as connection:
             for restaurant in top_recs:
                 loved_check = connection.execute(
@@ -587,7 +587,7 @@ def run_restaurant_search(user_input, user_id):
                     {"uid": user_id, "name": restaurant["name"], "location": restaurant["location"]}
                 ).fetchone()
                 
-                # Set loved status based on database
+                # set loved status based on database
                 if loved_check:
                     restaurant["loved"] = bool(loved_check[0])
                 else:
@@ -603,9 +603,9 @@ def run_restaurant_search(user_input, user_id):
 def migrate_database():
     """Add missing distance columns to existing table"""
     with engine.connect() as connection:
-        # Check if columns exist and add them if they don't
+        # check if columns exist and add them if they don't
         try:
-            # Try to select the new columns to see if they exist
+            # try to select the new columns to see if they exist
             connection.execute(db.text(f"SELECT distance_meters FROM {TABLE_RN} LIMIT 1"))
             print("Distance columns already exist")
         except Exception:
@@ -615,11 +615,11 @@ def migrate_database():
                 connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN driving_distance_miles REAL"))
                 connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN driving_duration_minutes REAL"))
                 connection.commit()
-                print("✅ Distance columns added successfully!")
+                print("Distance columns added successfully!")
             except Exception as e:
                 print(f"Error adding columns: {e}")
 
-        # Check if loved column exists and add it if it doesn't
+        # check if loved column exists and add it if it doesn't
         try:
             connection.execute(db.text(f"SELECT loved FROM {TABLE_RN} LIMIT 1"))
             print("Loved column already exists")
@@ -628,7 +628,7 @@ def migrate_database():
             try:
                 connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN loved BOOLEAN DEFAULT FALSE"))
                 connection.commit()
-                print("✅ Loved column added successfully!")
+                print("Loved column added successfully!")
             except Exception as e:
                 print(f"Error adding loved column: {e}")
 
@@ -640,7 +640,7 @@ def migrate_database():
             try:
                 connection.execute(db.text(f"ALTER TABLE {TABLE_RN} ADD COLUMN notes TEXT DEFAULT ''"))
                 connection.commit()
-                print("✅ Notes column added successfully!")
+                print("Notes column added successfully!")
             except Exception as e:
                 print(f"Error adding notes column: {e}")
 

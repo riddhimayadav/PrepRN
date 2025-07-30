@@ -11,7 +11,6 @@ body {
   position: relative;
 }
 
-/* Subtle background pattern */
 body::before {
   content: '';
   position: absolute;
@@ -25,7 +24,6 @@ body::before {
   pointer-events: none;
 }
 
-/* Modern typography */
 h1 {
   font-size: clamp(2.2rem, 4vw, 3rem);
   font-weight: 700;
@@ -48,7 +46,6 @@ h2 {
   letter-spacing: 0.01em;
 }
 
-/* Modern card design */
 form {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
@@ -75,7 +72,6 @@ form:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-/* Modern input styling */
 label {
   display: block;
   color: #4a5a4d;
@@ -118,7 +114,6 @@ input:hover:not(:focus) {
   background: rgba(255, 255, 255, 0.8);
 }
 
-/* Modern button design */
 button, input[type=submit] {
   background: linear-gradient(135deg, #ACB288 0%, #9ba47a 100%);
   color: white;
@@ -169,7 +164,6 @@ button:active, input[type=submit]:active {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Modern link styling */
 a {
   color: #5a6b5d;
   text-decoration: none;
@@ -200,7 +194,6 @@ a:hover::after {
   width: 100%;
 }
 
-/* Modern paragraph styling */
 p {
   text-align: center;
   margin-top: 1.5em;
@@ -209,7 +202,6 @@ p {
   line-height: 1.5;
 }
 
-/* Error message enhancement */
 p[style*="color: red"] {
   background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.08));
   color: #d63031 !important;
@@ -220,7 +212,6 @@ p[style*="color: red"] {
   backdrop-filter: blur(10px);
 }
 
-/* Responsive enhancements */
 @media (max-width: 480px) {
   body {
     padding: 1rem;
@@ -240,7 +231,6 @@ p[style*="color: red"] {
   }
 }
 
-/* Subtle animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;

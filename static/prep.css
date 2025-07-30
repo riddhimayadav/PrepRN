@@ -1,4 +1,3 @@
-/* Modern color variables */
 :root {
   --primary-green: #ACB288;
   --secondary-green: #9ba47a;
@@ -8,13 +7,11 @@
   --text-light: #6b7b6e;
 }
 
-/* Modern page container */
 body {
   background: linear-gradient(135deg, #f8fffe 0%, #f0f8f0 30%, #e8f5e8 70%, #f5f9f5 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Subtle background pattern */
 main::before {
   content: '';
   position: absolute;
@@ -29,7 +26,6 @@ main::before {
   z-index: 1;
 }
 
-/* Center the content properly */
 main {
   display: flex;
   align-items: center;
@@ -49,7 +45,6 @@ main {
   z-index: 10;
 }
 
-/* Modern heading */
 .eatin-wrapper h2 {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: 700;
@@ -63,7 +58,6 @@ main {
   animation: fadeInDown 0.6s ease-out;
 }
 
-/* Modern form container */
 .eatin-form {
   width: 100%;
   max-width: 450px;
@@ -92,14 +86,12 @@ main {
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-/* Modern input groups */
 .input-group {
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* Generic input labels */
 .input-group label:not(.radio-option):not(.radio-header) {
   background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
   color: white;
@@ -114,7 +106,6 @@ main {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Radio group styling */
 .input-group.radio-group .radio-header {
   background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
   color: white;
@@ -155,7 +146,6 @@ main {
   border-radius: 0 0 16px 16px;
 }
 
-/* Radio button styling */
 .input-group.radio-group input[type="radio"] {
   width: 20px;
   height: 20px;
@@ -163,7 +153,6 @@ main {
   margin: 0;
 }
 
-/* Text inputs and selects */
 .input-group input[type="text"],
 .input-group input[type="number"],
 .input-group select {
@@ -197,7 +186,6 @@ main {
   color: rgba(44, 62, 47, 0.6);
 }
 
-/* Location controls styling */
 .location-controls {
   display: flex;
   flex-direction: column;
@@ -252,7 +240,6 @@ main {
   transform: none;
 }
 
-/* Or divider styling */
 .or-divider {
   text-align: center;
   color: var(--text-light);
@@ -280,7 +267,6 @@ main {
   right: 0;
 }
 
-/* Pantry list styling */
 .pantry-list {
   list-style: none;
   padding: 1rem 1.2rem;
@@ -313,7 +299,6 @@ main {
   transform: translateY(-1px);
 }
 
-/* Empty field styling (for pantry and dietary restrictions when empty) */
 .empty-field {
   padding: 1rem 1.2rem;
   background: rgba(255, 255, 255, 0.8);
@@ -325,9 +310,6 @@ main {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-
-/* Unified Dashboard button styling */
 .dashboard-btn {
   display: inline-flex;
   align-items: center;
@@ -369,7 +351,6 @@ main {
   left: 100%;
 }
 
-/* Modern submit button */
 .eatin-form button[type="submit"] {
   padding: 1.2rem 2rem;
   font-size: 1.1rem;
@@ -413,7 +394,6 @@ main {
   left: 100%;
 }
 
-/* Loading message styling */
 #loading-msg {
   background: rgba(172, 178, 136, 0.1);
   backdrop-filter: blur(10px);
@@ -426,7 +406,6 @@ main {
   font-weight: 500;
 }
 
-/* Results section styling */
 #recommendations {
   text-align: center;
   font-size: clamp(1.4rem, 3vw, 1.8rem);
@@ -439,7 +418,6 @@ main {
   background-clip: text;
 }
 
-/* Modern meal cards */
 .recommendation-wrapper {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -492,7 +470,6 @@ main {
   font-weight: 400;
 }
 
-/* Rating and price styling */
 .rating-price-inline {
   display: flex;
   align-items: center;
@@ -513,7 +490,6 @@ main {
   gap: 0.3rem;
 }
 
-/* Heart button styling */
 .heart-btn-inline {
   background: none !important;
   border: none !important;
@@ -544,7 +520,6 @@ main {
   filter: drop-shadow(0 2px 4px rgba(255, 107, 107, 0.3));
 }
 
-/* Modern action buttons */
 .action-buttons {
   display: flex;
   gap: 0.8rem;
@@ -618,7 +593,6 @@ main {
   box-shadow: 0 4px 15px rgba(108, 117, 125, 0.25);
 }
 
-/* Modern grocery store list */
 .store-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -662,7 +636,6 @@ main {
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-/* Animations */
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -685,7 +658,6 @@ main {
   }
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   main {
     padding: 1rem 0.5rem;
