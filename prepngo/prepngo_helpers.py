@@ -26,59 +26,78 @@ if not SPOON_KEY:
 
 def get_prepngo_meals(user_input, user_id):
     """
-    Runs your PrepnGo logic, then enriches each meal with ingredients
-    & instructions by hitting Spoonacular’s /information endpoint.
-    If no explicit `id` field, we parse it from the source_url.
+    Runs your PrepnGo logic and returns basic recipe info only.
+    Recipe ID fetching and detailed info is commented out for simplicity.
     """
     results = run_prepngo_main(user_input)
     meals   = results.get("meals", [])
 
+    # Just add empty arrays for ingredients and instructions to avoid template errors
     for m in meals:
-        # 1) try explicit id keys
-        recipe_id = m.get("id") or m.get("spoon_id")
-
-        # 2) fallback: parse from URL, e.g. "…/recipe/W62QWGP6/…"
-        if not recipe_id and m.get("source_url"):
-            match = re.search(r"/recipe/([^/]+)/", m["source_url"])
-            if match:
-                recipe_id = match.group(1)
-
-        if not recipe_id:
-            logging.warning(f"⚠️  No recipe_id for {m.get('title')}")
-            m["ingredients"]  = []
-            m["instructions"] = []
-            continue
-
-        # 3) fetch full info
-        try:
-            resp = requests.get(
-                f"https://api.spoonacular.com/recipes/{recipe_id}/information",
-                params={"apiKey": SPOON_KEY, "includeNutrition": False},
-                timeout=10
-            )
-            resp.raise_for_status()
-            info = resp.json()
-        except Exception:
-            m["ingredients"]  = []
-            m["instructions"] = []
-            continue
-
-        # 4) extract
-        m["ingredients"] = [
-            ing.get("original","").strip()
-            for ing in info.get("extendedIngredients", [])
-            if ing.get("original")
-        ]
-        steps = []
-        for block in info.get("analyzedInstructions", []):
-            for step in block.get("steps", []):
-                txt = step.get("step","").strip()
-                if txt:
-                    steps.append(txt)
-        m["instructions"] = steps
+        m["ingredients"]  = []
+        m["instructions"] = []
+        # Optional: Add a note that detailed info is not available
+        if not m.get("summary"):
+            m["summary"] = "Basic recipe info - click 'View Recipe' for full details."
 
     results["meals"] = meals
     return results
+
+# def get_prepngo_meals(user_input, user_id):
+#     """
+#     Runs your PrepnGo logic, then enriches each meal with ingredients
+#     & instructions by hitting Spoonacular’s /information endpoint.
+#     If no explicit `id` field, we parse it from the source_url.
+#     """
+#     results = run_prepngo_main(user_input)
+#     meals   = results.get("meals", [])
+
+#     for m in meals:
+#         # 1) try explicit id keys
+#         recipe_id = m.get("id") or m.get("spoon_id")
+
+#         # 2) fallback: parse from URL, e.g. "…/recipe/W62QWGP6/…"
+#         if not recipe_id and m.get("source_url"):
+#             match = re.search(r"/recipe/([^/]+)/", m["source_url"])
+#             if match:
+#                 recipe_id = match.group(1)
+
+#         if not recipe_id:
+#             logging.warning(f"⚠️  No recipe_id for {m.get('title')}")
+#             m["ingredients"]  = []
+#             m["instructions"] = []
+#             continue
+
+#         # 3) fetch full info
+#         try:
+#             resp = requests.get(
+#                 f"https://api.spoonacular.com/recipes/{recipe_id}/information",
+#                 params={"apiKey": SPOON_KEY, "includeNutrition": False},
+#                 timeout=10
+#             )
+#             resp.raise_for_status()
+#             info = resp.json()
+#         except Exception:
+#             m["ingredients"]  = []
+#             m["instructions"] = []
+#             continue
+
+#         # 4) extract
+#         m["ingredients"] = [
+#             ing.get("original","").strip()
+#             for ing in info.get("extendedIngredients", [])
+#             if ing.get("original")
+#         ]
+#         steps = []
+#         for block in info.get("analyzedInstructions", []):
+#             for step in block.get("steps", []):
+#                 txt = step.get("step","").strip()
+#                 if txt:
+#                     steps.append(txt)
+#         m["instructions"] = steps
+
+#     results["meals"] = meals
+#     return results
 
 def save_prepngo_results(meals, user_input, user_id):
     """
@@ -169,18 +188,42 @@ def get_loved_meals(user_id):
 def migrate_meals_notes_table():
     """Add notes, instructions, shopping_list columns to meals table if missing."""
     with engine.connect() as conn:
-        for col, typ in [
-            ("notes",         "TEXT DEFAULT ''"),
-            ("instructions",  "TEXT DEFAULT ''"),
-            ("ingredients",   "TEXT DEFAULT ''"),
-            ("user_id",       "INTEGER"),
-        ]:
-            try:
-                conn.execute(text(f"SELECT {col} FROM meals LIMIT 1"))
-            except Exception:
-                conn.execute(text(f"ALTER TABLE meals ADD COLUMN {col} {typ}"))
-                conn.commit()
-                print(f"✅ Added `{col}` column.")
+        # First, check if the meals table exists at all
+        try:
+            table_exists = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='meals'")).fetchone()
+            if not table_exists:
+                print("[DEBUG] Meals table doesn't exist, calling init_db to create it...")
+                # Close this connection and initialize the database properly
+                conn.close()
+                init_db_conn = init_db("preprn.db")
+                init_db_conn.close()
+                # Reconnect with a fresh connection
+                with engine.connect() as new_conn:
+                    _add_missing_columns(new_conn)
+            else:
+                _add_missing_columns(conn)
+        except Exception as e:
+            print(f"[ERROR] Error in migrate_meals_notes_table: {e}")
+            # If there's any error, try to initialize the database
+            init_db_conn = init_db("preprn.db")
+            init_db_conn.close()
+
+def _add_missing_columns(conn):
+    """Helper function to add missing columns to an existing meals table."""
+    for col, typ in [
+        ("notes",         "TEXT DEFAULT ''"),
+        ("instructions",  "TEXT DEFAULT ''"),
+        ("ingredients",   "TEXT DEFAULT ''"),
+        ("user_id",       "INTEGER"),
+    ]:
+        try:
+            conn.execute(text(f"SELECT {col} FROM meals LIMIT 1"))
+            print(f"[DEBUG] Column {col} already exists")
+        except Exception:
+            print(f"[DEBUG] Adding column {col}")
+            conn.execute(text(f"ALTER TABLE meals ADD COLUMN {col} {typ}"))
+            conn.commit()
+            print(f"✅ Added `{col}` column.")
 
 def update_meal_notes(user_id, title, notes):
     migrate_meals_notes_table()
