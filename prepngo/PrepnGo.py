@@ -103,31 +103,31 @@ def _generate_store_suggestions_with_genai_timeout(city: str, state: str, budget
         result = [None]
         exception_occurred = [False]
         
-        def genai_task():
-            try:
-                model = get_genai_model(GOOGLE_API_KEY)
-                prompt = f"""Suggest 3 grocery stores in {city}, {state} for a budget of ${budget:.2f}. 
-                Include store names, brief descriptions, and estimated price ranges. 
-                Format as a bulleted list with store name, price range, and one sentence description."""
+        # def genai_task():
+        #     try:
+        #         model = get_genai_model(GOOGLE_API_KEY)
+        #         prompt = f"""Suggest 3 grocery stores in {city}, {state} for a budget of ${budget:.2f}. 
+        #         Include store names, brief descriptions, and estimated price ranges. 
+        #         Format as a bulleted list with store name, price range, and one sentence description."""
                 
-                response = model.generate_content(prompt)
-                if response and response.text:
-                    result[0] = response.text.strip()
-            except Exception as e:
-                print(f"[DEBUG] GenAI store suggestions failed: {e}")
-                exception_occurred[0] = True
+        #         response = model.generate_content(prompt)
+        #         if response and response.text:
+        #             result[0] = response.text.strip()
+        #     except Exception as e:
+        #         print(f"[DEBUG] GenAI store suggestions failed: {e}")
+        #         exception_occurred[0] = True
         
-        # Start the GenAI task in a separate thread
-        thread = threading.Thread(target=genai_task)
-        thread.daemon = True
-        thread.start()
-        thread.join(timeout=timeout)
+        # # Start the GenAI task in a separate thread
+        # thread = threading.Thread(target=genai_task)
+        # thread.daemon = True
+        # thread.start()
+        # thread.join(timeout=timeout)
         
-        if thread.is_alive():
-            print(f"[DEBUG] GenAI store suggestions timeout ({timeout}s), using fallback")
-        elif not exception_occurred[0] and result[0]:
-            print("[DEBUG] Using GenAI store suggestions")
-            return result[0]
+        # if thread.is_alive():
+        #     print(f"[DEBUG] GenAI store suggestions timeout ({timeout}s), using fallback")
+        # elif not exception_occurred[0] and result[0]:
+        #     print("[DEBUG] Using GenAI store suggestions")
+        #     return result[0]
     
     # Fallback to template-based store suggestions
     print("[DEBUG] Using template store suggestions")
