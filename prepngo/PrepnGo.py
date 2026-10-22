@@ -16,9 +16,6 @@ from google.api_core.exceptions import ResourceExhausted
 SPOON_API_KEY = os.getenv('SPOON_API_KEY')
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-if not SPOON_API_KEY:
-    print(" ERROR: SPOON_API_KEY not set. Export your Spoonacular key first.")
-    exit(1)
 
 # Template descriptions for meals for fallback
 MEAL_DESCRIPTIONS = [

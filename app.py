@@ -8,6 +8,10 @@ from shared.auth import login
 from prepngo.PrepnGo import main as run_prepngo_meals
 from prepngo.prepngo_helpers import *
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
+import click
+import os
+import math
 import time
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table
 import urllib.parse
@@ -31,11 +35,27 @@ from prepngo.prepngo_helpers import get_loved_meals
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = os.getenv("SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError("Set SECRET_KEY in your environment or .env before starting PrepRN.")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true",
+)
+csrf = CSRFProtect(app)
+
+
+@app.cli.command("migrate-passwords")
+def migrate_passwords_command():
+    """Hash existing account passwords after backing up the database."""
+    from shared.auth import migrate_legacy_passwords
+    count = migrate_legacy_passwords()
+    click.echo(f"Migrated {count} legacy account(s).")
+
 # spoon_key = os.getenv("SPOON_API_KEY")
 # yelp_key = os.getenv("YELP_API_KEY")
 api_key = os.getenv("SPOON_API_KEY")
-print("DEBUG Spoon Key:", api_key) 
 params = {
     "apiKey": api_key
 }
@@ -65,8 +85,9 @@ def signup_view():
         from shared.auth import signup
         result = signup(username, password)
         if result:
-            session["username"] = username
-            user_id = get_user_id(username)
+            session.clear()
+            session["username"] = result
+            user_id = get_user_id(result)
             session["user_id"] = user_id
             return redirect(url_for("dashboard"))
         else:
@@ -85,8 +106,9 @@ def login_view():
         from shared.auth import login
         valid_user = login(username, password)
         if valid_user:
+            session.clear()
             session["username"] = valid_user
-            user_id = get_user_id(username)
+            user_id = get_user_id(valid_user)
             session["user_id"] = user_id
             return redirect(url_for("dashboard"))
         else:
@@ -343,7 +365,18 @@ def prep():
                 flash("Invalid budget value.")
                 return redirect(url_for("prep"))
 
-        # —— Validation —— 
+        if not math.isfinite(user_input["budget"]) or user_input["budget"] < 0:
+            flash("Please enter a finite, non-negative budget.")
+            return redirect(url_for("prep"))
+        try:
+            user_input["servings"] = int(user_input["servings"])
+            if user_input["servings"] <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            flash("Please enter a positive whole number of servings.")
+            return redirect(url_for("prep"))
+
+        # —— Validation ——
         if not user_input["servings"]:
             flash("Please enter the number of servings.")
             return redirect(url_for("prep"))
@@ -572,7 +605,7 @@ def update_meal_notes_route():
     
     try:
         data = request.get_json()
-        print(f"[DEBUG] Received data: {data}")
+        app.logger.debug("Meal note update received")
         
         if not data:
             print(f"[DEBUG] No JSON data received")
@@ -648,4 +681,4 @@ def delete_meal():
 
 # Start the Flask app
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run()

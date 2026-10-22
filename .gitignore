@@ -13,3 +13,8 @@ venv/
 
 # Mac system files
 .DS_Store
+# Local development and test artifacts
+.venv/
+.pytest_cache/
+.coverage
+.claude/

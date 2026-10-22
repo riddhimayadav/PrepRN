@@ -15,14 +15,12 @@ from prepngo.database_functions import (
     toggle_meal_love_status,
     get_user_loved_meals,
 )
-from FoodiesRN.run_foodiesrn import engine
+from shared.database import engine, DATABASE_PATH as DB_PATH
 import logging
 
 
 # Make sure your SPOON_API_KEY is loaded into the env
 SPOON_KEY = os.getenv("SPOON_API_KEY")
-if not SPOON_KEY:
-    raise RuntimeError("SPOON_API_KEY not set in environment")
 
 def get_prepngo_meals(user_input, user_id):
     """
@@ -114,7 +112,7 @@ def save_prepngo_results(meals, user_input, user_id):
         m["ingredients"]  = json.dumps(m.get("ingredients", []))
         m["instructions"] = json.dumps(m.get("instructions", []))
 
-    conn  = init_db("preprn.db")
+    conn  = init_db(DB_PATH)
     # If grocery is disabled, use 0 as budget fallback
     budget_str = str(user_input.get("budget") or "0").strip()
     budget = float(budget_str) if budget_str else 0.0
@@ -129,7 +127,7 @@ def save_prepngo_results(meals, user_input, user_id):
 
 # Retrieve saved meal recommendations for a user
 def get_saved_prepngo(user_id):
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     results = get_saved_meals(conn, user_id)
     conn.close()
     return results
@@ -137,7 +135,7 @@ def get_saved_prepngo(user_id):
 
 def clear_loved_meals_db(user_id):
     """Clear all loved meals for a user"""
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     from prepngo.database_functions import clear_loved_meals_db as clear_loved_db
     clear_loved_db(conn, user_id)
     conn.close()
@@ -145,7 +143,7 @@ def clear_loved_meals_db(user_id):
 
 def delete_individual_meal(user_id, meal_title):
     """Delete a specific meal for a user"""
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     cur = conn.cursor()
     
     # Delete from meals table where the meal belongs to this user
@@ -163,14 +161,14 @@ def delete_individual_meal(user_id, meal_title):
 
 # Clear all saved meal results for a user
 def clear_saved_prepngo(user_id):
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     clear_meals(conn, user_id)
     conn.close()
 
 
 # Toggle the love status of a meal for a user
 def toggle_meal_love(user_id, meal_name, meal_url):
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     from prepngo.database_functions import toggle_meal_love_status
     loved_status = toggle_meal_love_status(conn, user_id, meal_name, meal_url)
     conn.close()
@@ -179,7 +177,7 @@ def toggle_meal_love(user_id, meal_name, meal_url):
 
 # Get all loved meals for a user
 def get_loved_meals(user_id):
-    conn = init_db('preprn.db')
+    conn = init_db(DB_PATH)
     from prepngo.database_functions import get_user_loved_meals
     loved_meals = get_user_loved_meals(conn, user_id)
     conn.close()
@@ -195,7 +193,7 @@ def migrate_meals_notes_table():
                 print("[DEBUG] Meals table doesn't exist, calling init_db to create it...")
                 # Close this connection and initialize the database properly
                 conn.close()
-                init_db_conn = init_db("preprn.db")
+                init_db_conn = init_db(DB_PATH)
                 init_db_conn.close()
                 # Reconnect with a fresh connection
                 with engine.connect() as new_conn:
@@ -205,7 +203,7 @@ def migrate_meals_notes_table():
         except Exception as e:
             print(f"[ERROR] Error in migrate_meals_notes_table: {e}")
             # If there's any error, try to initialize the database
-            init_db_conn = init_db("preprn.db")
+            init_db_conn = init_db(DB_PATH)
             init_db_conn.close()
 
 def _add_missing_columns(conn):

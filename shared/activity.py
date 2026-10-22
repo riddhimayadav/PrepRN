@@ -3,7 +3,7 @@ from typing import List, Dict
 from prepngo.database_functions import init_db, get_saved_meals
 from FoodiesRN.run_foodiesrn import create_foodiesrn_table, view_saved_recommendations
 
-DB_PATH = "preprn.db"
+from shared.database import DATABASE_PATH as DB_PATH
 
 def get_recent_recipes(user_id: int, days: int = 7) -> List[Dict]:
     """

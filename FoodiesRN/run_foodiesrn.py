@@ -1,8 +1,6 @@
 import requests
 import os
 import random
-import google.generativeai as genai
-import pandas as pd
 import sqlalchemy as db
 from sqlalchemy import inspect
 from dotenv import load_dotenv
@@ -14,13 +12,12 @@ import json
 # load environment variables
 load_dotenv()
 YELP_KEY = os.getenv("YELP_KEY")
-GENAI_KEY = os.getenv("GENAI_KEY")
-print("GENAI_KEY in Flask:", GENAI_KEY)
+GENAI_KEY = os.getenv("GENAI_KEY") or os.getenv("GOOGLE_API_KEY")
 GEOAPIFY_KEY = os.getenv("GEOAPIFY_KEY")
 
 
 # set up SQLAlchemy database engine
-engine = db.create_engine("sqlite:///preprn.db")
+from shared.database import engine
 TABLE_RN = "foodiesrn_recommendations" # table name for storing recommendations
 
 

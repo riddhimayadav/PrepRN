@@ -10,6 +10,7 @@
 
   <!-- Form to collect user's dining preferences -->
   <form method="POST" class="eatout-form" onsubmit="showLoading()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Location input field -->
     <div class="input-group">
       <label><i class="fas fa-map-marker-alt"></i> Location:</label>
@@ -292,7 +293,8 @@ function toggleRestaurantLove(name, location, button) {
     
     fetch('/love_restaurant', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+        'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, location: location })
     })
     .then(response => response.json())

@@ -1,7 +1,7 @@
 import sqlite3
 from typing import List
 
-DB_PATH = "preprn.db"
+from shared.database import DATABASE_PATH as DB_PATH
 TABLE_NAME = "pantry_items"
 
 def init_pantry_db():

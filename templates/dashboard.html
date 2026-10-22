@@ -28,6 +28,7 @@
     {# when you click “edit” show one input for the whole list #}
     <div id="pantry-edit" class="panel-edit" style="display:none">
       <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="action" value="update_pantry">
         <label for="pantry_list">Enter items, separated by commas:</label><br>
         <input
@@ -58,6 +59,7 @@
     </ul>
     <div id="restrict-edit" class="panel-edit" style="display:none">
       <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="action" value="update_restrictions">
         {% for d in [
           'vegan','vegetarian','pescetarian','gluten free',

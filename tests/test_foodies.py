@@ -1,44 +1,36 @@
-import unittest
-from app import app
+from unittest.mock import Mock
 
-class TestPrepRNEatOut(unittest.TestCase):
-    def setUp(self):
-        app.config['TESTING'] = True
-        app.config['SECRET_KEY'] = 'test_secret'
-        self.client = app.test_client()
+import app as routes
+import requests
 
-    def test_eatout_page_loads(self):
-        """GET /eatout should load with status 200 and include the form."""
-        response = self.client.get('/eatout')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Find Your Next Spot', response.data)
 
-    def test_eatout_missing_fields(self):
-        """POST /eatout with missing fields should return error message."""
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/eatout', data={
-            "location": "",
-            "radius": "",
-            "cuisine": "",
-            "price": "",
-            "vibe": ""
-        }, follow_redirects=True)
-        self.assertIn(b'Please fill out all fields', response.data)
+def test_missing_search_fields_do_not_call_provider(authenticated_client, csrf_token, monkeypatch):
+    search = Mock()
+    monkeypatch.setattr(routes, "run_restaurant_search", search)
+    response = authenticated_client.post("/foodies", data={"csrf_token": csrf_token(authenticated_client)})
+    assert response.status_code == 200
+    assert b"Please fill out all fields" in response.data
+    search.assert_not_called()
 
-    def test_eatout_valid_post(self):
-        """POST /eatout with valid fields should return 200 and maybe results."""
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/eatout', data={
-            "location": "New York",
-            "radius": "10",
-            "cuisine": "Thai",
-            "price": "$$",
-            "vibe": "Cozy"
-        }, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Top Recommendations', response.data)  # Only if mock returns something
 
-if __name__ == '__main__':
-    unittest.main()
+def test_search_results_survive_redirect(authenticated_client, csrf_token, monkeypatch):
+    search = Mock(return_value=[{"name": "Example Cafe", "location": "Austin", "rating": 4.5,
+                               "price": "$$", "url": "https://example.com", "image_url": ""}])
+    monkeypatch.setattr(routes, "run_restaurant_search", search)
+    response = authenticated_client.post("/foodies", data={
+        "location": "Austin", "cuisine": "Thai", "price": "$$", "vibe": "Cozy",
+        "csrf_token": csrf_token(authenticated_client),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Example Cafe" in response.data
+    search.assert_called_once()
+
+
+def test_provider_timeout_returns_a_usable_error(authenticated_client, csrf_token, monkeypatch):
+    monkeypatch.setattr(routes, "run_restaurant_search", Mock(side_effect=requests.Timeout("provider unavailable")))
+    response = authenticated_client.post("/foodies", data={
+        "location": "Austin", "cuisine": "Thai", "price": "$$", "vibe": "Cozy",
+        "csrf_token": csrf_token(authenticated_client),
+    })
+    assert response.status_code == 200
+    assert b"Something went wrong" in response.data

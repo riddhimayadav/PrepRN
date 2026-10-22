@@ -1,7 +1,7 @@
 import sqlite3
 from typing import List, Tuple
 
-DB_PATH = "preprn.db"
+from shared.database import DATABASE_PATH as DB_PATH
 TABLE = "user_profile"
 
 def _connect():

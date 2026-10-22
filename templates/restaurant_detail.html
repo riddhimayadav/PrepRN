@@ -158,7 +158,8 @@ function toggleRestaurantLove(name, location, button) {
     
     fetch('/love_restaurant', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+        'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, location: location })
     })
     .then(response => response.json())
@@ -251,6 +252,7 @@ function saveNotes() {
     fetch('/update_restaurant_notes', {
         method: 'POST',
         headers: {
+        'X-CSRFToken': '{{ csrf_token() }}',
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
