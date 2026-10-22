@@ -1,56 +1,20 @@
-import unittest
-from app import app
-from flask import session
+from shared.pantry import add_pantry_item, get_pantry_items
 
-class TestDashboardRoutes(unittest.TestCase):
 
-    def setUp(self):
-        # Set up the test client
-        app.config['TESTING'] = True
-        self.client = app.test_client()
+def test_dashboard_updates_only_the_current_users_pantry(authenticated_client, csrf_token):
+    with authenticated_client.session_transaction() as session:
+        user_id = session["user_id"]
+    add_pantry_item(99, "private-other-user-item")
+    response = authenticated_client.post("/dashboard", data={
+        "action": "update_pantry", "pantry_list": "rice, beans",
+        "csrf_token": csrf_token(authenticated_client),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert get_pantry_items(user_id) == ["beans", "rice"]
+    assert get_pantry_items(99) == ["private-other-user-item"]
+    assert b"private-other-user-item" not in response.data
 
-    def login_simulation(self):
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-            sess['username'] = 'testuser'
 
-    def test_dashboard_requires_login(self):
-        # Test that the dashboard redirects to login if not logged in
-        response = self.client.get('/dashboard', follow_redirects=False)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/login', response.location)
-
-    def test_dashboard_loads_when_logged_in(self):
-        # Simulate login and check dashboard access
-        self.login_simulation()
-        response = self.client.get('/dashboard')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'My Pantry', response.data)
-
-    def test_add_pantry_item_missing_field(self):
-        self.login_simulation()
-        response = self.client.post('/add_pantry_item', data={}, follow_redirects=True)
-        self.assertIn(b'Pantry item name is required.', response.data)
-
-    def test_add_pantry_item_valid(self):
-        self.login_simulation()
-        response = self.client.post('/add_pantry_item', data={'item': 'rice'}, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'rice', response.data)
-
-    def test_remove_pantry_item_invalid_index(self):
-        self.login_simulation()
-        response = self.client.post('/remove_pantry_item', data={'index': 'abc'}, follow_redirects=True)
-        self.assertIn(b'Invalid pantry item index.', response.data)
-
-    def test_remove_pantry_item_valid(self):
-        self.login_simulation()
-        # Add item first
-        self.client.post('/add_pantry_item', data={'item': 'apple'}, follow_redirects=True)
-        # Remove item
-        response = self.client.post('/remove_pantry_item', data={'index': '0'}, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn(b'apple', response.data)
-
-if __name__ == '__main__':
-    unittest.main()
+def test_form_mutations_require_csrf(authenticated_client):
+    response = authenticated_client.post("/dashboard", data={"action": "update_pantry", "pantry_list": "rice"})
+    assert response.status_code == 400

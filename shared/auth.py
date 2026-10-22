@@ -1,79 +1,97 @@
-# Import SQLAlchemy for database interaction
+"""Account storage with hashed passwords and an explicit legacy migration."""
+
+from getpass import getpass
+
 import sqlalchemy as db
-from sqlalchemy import inspect
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from shared.database import engine
 
 
-# Create a SQLite engine using 'preprn.db'
-engine = db.create_engine("sqlite:///preprn.db")
-inspector = inspect(engine)
-
-
-# Function to create a users table if it doesn't already exist
 def create_user_table():
-    with engine.connect() as connection:
+    with engine.begin() as connection:
         connection.execute(db.text("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                password_scheme TEXT NOT NULL DEFAULT 'legacy'
             )
         """))
-        connection.commit()
+        columns = {row[1] for row in connection.execute(db.text("PRAGMA table_info(users)"))}
+        if "password_scheme" not in columns:
+            connection.execute(db.text("ALTER TABLE users ADD COLUMN password_scheme TEXT NOT NULL DEFAULT 'legacy'"))
 
 
-# Function to register a new user
 def signup(username, password):
-    if not username.strip() or not password.strip():
+    if not isinstance(username, str) or not isinstance(password, str):
         return None
-
-    with engine.connect() as connection:
-        existing = connection.execute(
-            db.text("SELECT * FROM users WHERE username = :u"),
-            {"u": username}
-        ).fetchone()
-
-        if existing:
-            return None
-        else:
+    username = username.strip()
+    if not username or not password.strip():
+        return None
+    password_hash = generate_password_hash(password)
+    try:
+        with engine.begin() as connection:
             connection.execute(
-                db.text("INSERT INTO users (username, password) VALUES (:u, :p)"),
-                {"u": username, "p": password}
+                db.text("INSERT INTO users (username, password, password_scheme) VALUES (:u, :p, 'werkzeug')"),
+                {"u": username, "p": password_hash},
             )
-            connection.commit()
-            return username
+    except IntegrityError:
+        return None
+    return username
 
 
-# Function to log in an existing user
 def login(username, password):
+    if not isinstance(username, str) or not isinstance(password, str):
+        return None
     with engine.connect() as connection:
         result = connection.execute(
-            db.text("SELECT * FROM users WHERE username = :u AND password = :p"),
-            {"u": username, "p": password}
-        ).fetchone()
-
-    if result:
-        return username
-    else:
+            db.text("SELECT username, password, password_scheme FROM users WHERE username = :u"),
+            {"u": username.strip()},
+        ).mappings().first()
+    if not result or result["password_scheme"] != "werkzeug":
         return None
+    try:
+        valid = check_password_hash(result["password"], password)
+    except (ValueError, TypeError):
+        valid = False
+    return result["username"] if valid else None
 
 
-# CLI function to prompt user to either login or sign up (used for terminal version)
+def migrate_legacy_passwords():
+    """Hash legacy rows in one transaction; preserve account IDs and plaintext-looking passwords."""
+    create_user_table()
+    with engine.begin() as connection:
+        rows = connection.execute(
+            db.text("SELECT id, password FROM users WHERE password_scheme = 'legacy'")
+        ).mappings().all()
+        for row in rows:
+            connection.execute(
+                db.text("UPDATE users SET password = :password, password_scheme = 'werkzeug' WHERE id = :id AND password_scheme = 'legacy'"),
+                {"password": generate_password_hash(row["password"]), "id": row["id"]},
+            )
+    return len(rows)
+
+
 def login_or_signup():
+    create_user_table()
     while True:
-        choice = input("Do you want to login or sign up? (login/signup): ").strip().lower()
-        if choice == "login":
-            return login()
-        elif choice == "signup":
-            return signup()
-        else:
-            print("Invalid input. Please type 'login' or 'signup'.\n")
+        choice = input("Log in or sign up? (login/signup): ").strip().lower()
+        if choice not in {"login", "signup"}:
+            print("Please choose login or signup.")
+            continue
+        username = input("Username: ").strip()
+        password = getpass("Password: ")
+        result = login(username, password) if choice == "login" else signup(username, password)
+        if result:
+            return result
+        print("Account could not be authenticated or created.")
 
 
-# Function to retrieve a user's ID based on their username
 def get_user_id(username):
     with engine.connect() as connection:
         result = connection.execute(
-            db.text("SELECT id FROM users WHERE username = :u"),
-            {"u": username}
-        ).fetchone()
-        return result[0] if result else None
+            db.text("SELECT id FROM users WHERE username = :u"), {"u": username}
+        ).first()
+    return result[0] if result else None

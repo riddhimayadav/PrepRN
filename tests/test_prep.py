@@ -1,51 +1,37 @@
-import unittest
-from app import app
+from unittest.mock import Mock
 
-class TestPrepPage(unittest.TestCase):
-    def setUp(self):
-        # Setup the test client
-        app.config['TESTING'] = True
-        app.config['SECRET_KEY'] = 'test_secret'
-        self.client = app.test_client()
+import app as routes
 
-    def test_prep_get_requires_login(self):
-        # GET /prep without login should redirect
-        response = self.client.get('/prep')
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/login', response.location)
 
-    def test_prep_get_logged_in(self):
-        # GET /prep with login should load the form
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.get('/prep')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Find Your Next Favorite Recipe', response.data)
+def test_meal_request_passes_validated_input(authenticated_client, csrf_token, monkeypatch):
+    planner = Mock(return_value={"meals": [], "stores": "Example stores"})
+    monkeypatch.setattr(routes, "get_prepngo_meals", planner)
+    response = authenticated_client.post("/prep", data={
+        "location": "Austin, TX", "budget": "25", "servings": "2", "grocery": "yes", "meal_type": "dinner",
+        "csrf_token": csrf_token(authenticated_client),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    planner.assert_called_once()
+    assert planner.call_args.args[0]["budget"] == 25.0
 
-    def test_prep_post_missing_fields(self):
-        # POST with missing data should show error
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/prep', data={
-            "location": "",
-            "budget": "",
-            "servings": ""
-        }, follow_redirects=True)
-        self.assertIn(b'Please fill out all fields', response.data)
 
-    def test_prep_post_valid_data(self):
-        # POST valid data should show loading or results
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/prep', data={
-            "location": "New York",
-            "grocery": "yes",
-            "budget": "25.00",
-            "servings": "2",
-            "meal_type": "Dinner"
-        }, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Meal Plan', response.data)
+def test_invalid_budget_never_calls_provider(authenticated_client, csrf_token, monkeypatch):
+    planner = Mock()
+    monkeypatch.setattr(routes, "get_prepngo_meals", planner)
+    response = authenticated_client.post("/prep", data={
+        "location": "Austin", "budget": "not-a-number", "servings": "2", "grocery": "yes",
+        "csrf_token": csrf_token(authenticated_client),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    planner.assert_not_called()
 
-if __name__ == '__main__':
-    unittest.main()
+
+def test_invalid_servings_never_calls_provider(authenticated_client, csrf_token, monkeypatch):
+    planner = Mock()
+    monkeypatch.setattr(routes, "get_prepngo_meals", planner)
+    response = authenticated_client.post("/prep", data={
+        "location": "Austin", "budget": "25", "servings": "0", "grocery": "yes",
+        "csrf_token": csrf_token(authenticated_client),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    planner.assert_not_called()

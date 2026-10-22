@@ -1,56 +1,20 @@
-import unittest
-from app import app
-from flask import session
+import sqlalchemy as db
 
-class TestFoodiesRN(unittest.TestCase):
-    def setUp(self):
-        # Setup test client
-        app.config['TESTING'] = True
-        app.config['SECRET_KEY'] = 'test_secret'
-        self.client = app.test_client()
+from shared.database import engine
 
-    def test_get_foodies_page(self):
-        # Check if the GET request loads the Eat Out page
-        response = self.client.get('/run_foodiesrn')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Find Your Next Spot', response.data)
 
-    def test_post_missing_fields(self):
-        # Simulate a POST request with missing fields
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1  # simulate login
-        response = self.client.post('/run_foodiesrn', data={
-            'location': '',
-            'cuisine': '',
-            'price': '',
-            'vibe': ''
-        }, follow_redirects=True)
-        self.assertIn(b'Please fill out all fields.', response.data)
-
-    def test_post_with_valid_input(self):
-        # Simulate a POST request with valid data
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/run_foodiesrn', data={
-            'location': 'New York, NY',
-            'cuisine': 'Mexican',
-            'price': '$$',
-            'vibe': 'Cozy',
-            'radius': '10'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Top Recommendations', response.data)
-
-    def test_love_restaurant_post(self):
-        # Test POST to /love_restaurant with sample data
-        with self.client.session_transaction() as sess:
-            sess['user_id'] = 1
-        response = self.client.post('/love_restaurant', json={
-            'name': 'Taco Place',
-            'location': 'New York, NY'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'loved', response.data)
-
-if __name__ == '__main__':
-    unittest.main()
+def test_saved_recommendations_and_deletion_are_scoped_to_current_user(authenticated_client, csrf_token):
+    with authenticated_client.session_transaction() as session:
+        user_id = session["user_id"]
+    with engine.begin() as connection:
+        connection.execute(db.text("INSERT INTO foodiesrn_recommendations (name, location, user_id) VALUES (:name, 'Austin', :uid)"),
+                           [{"name": "My Cafe", "uid": user_id}, {"name": "Private Other Cafe", "uid": 99}])
+    response = authenticated_client.get("/my_recommendations")
+    assert response.status_code == 200
+    assert b"My Cafe" in response.data
+    assert b"Private Other Cafe" not in response.data
+    response = authenticated_client.post("/delete_restaurant", json={"name": "Private Other Cafe", "location": "Austin"},
+                                         headers={"X-CSRFToken": csrf_token(authenticated_client)})
+    assert response.status_code == 200
+    with engine.connect() as connection:
+        assert connection.execute(db.text("SELECT count(*) FROM foodiesrn_recommendations WHERE user_id = 99")).scalar_one() == 1

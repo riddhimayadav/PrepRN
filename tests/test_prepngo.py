@@ -1,57 +1,25 @@
-import unittest
-from prepngo.PrepnGo import main
+from unittest.mock import Mock
 
-class TestPrepnGoMain(unittest.TestCase):
+from prepngo import PrepnGo as planner
 
-    def test_main_with_grocery_shopping(self):
-        # Test normal grocery shopping flow
-        user_input = {
-            "budget": "50",
-            "servings": "3",
-            "diets": ["vegetarian"],
-            "meal_type": "dinner",
-            "location": "Austin, TX",
-            "grocery": "yes",
-            "pantry": []
-        }
-        result = main(user_input)
-        self.assertIn("meals", result)
-        self.assertIsInstance(result["meals"], list)
-        self.assertGreaterEqual(len(result["meals"]), 1)
-        self.assertIn("stores", result)
-        self.assertIsInstance(result["stores"], str)
 
-    def test_main_with_pantry_only(self):
-        # Test pantry-only flow (no grocery shopping)
-        user_input = {
-            "budget": "0",
-            "servings": "2",
-            "diets": [],
-            "meal_type": "lunch",
-            "location": "Los Angeles, CA",
-            "grocery": "no",
-            "pantry": ["rice", "beans", "onion"]
-        }
-        result = main(user_input)
-        self.assertIn("meals", result)
-        self.assertTrue(all(meal["price"] == 0.0 for meal in result["meals"]))
-        self.assertIn("stores", result)
-        self.assertIn("No grocery stores needed", result["stores"])
+def test_grocery_flow_preserves_meal_type_and_uses_fallback(monkeypatch):
+    provider = Mock(return_value=[{"title": "Example meal", "price": 4.0, "diets": [], "source_url": "https://example.com"}])
+    monkeypatch.setattr(planner, "get_random_meal_plan", provider)
+    monkeypatch.setattr(planner, "_generate_genai_description_with_timeout", lambda *args, **kwargs: None)
+    result = planner.main({"budget": "25", "servings": "2", "diets": ["vegetarian"],
+                           "meal_type": "dinner", "location": "Austin, TX", "grocery": "yes"})
+    assert result["meals"][0]["meal_type"] == "dinner"
+    assert result["meals"][0]["summary"]
+    provider.assert_called_once_with(25.0, 2, ["vegetarian", "dinner"])
 
-    def test_meal_type_persists(self):
-        # Make sure meal_type is saved in the meal object
-        user_input = {
-            "budget": "30",
-            "servings": "1",
-            "diets": [],
-            "meal_type": "breakfast",
-            "location": "Chicago, IL",
-            "grocery": "yes",
-            "pantry": []
-        }
-        result = main(user_input)
-        for meal in result["meals"]:
-            self.assertEqual(meal.get("meal_type"), "breakfast")
 
-if __name__ == '__main__':
-    unittest.main()
+def test_pantry_flow_uses_ingredients_without_grocery_cost(monkeypatch):
+    monkeypatch.setattr(planner, "find_by_ingredients", Mock(return_value=[{"id": 7}]))
+    monkeypatch.setattr(planner, "get_recipe_information", Mock(return_value={"title": "Rice and beans", "diets": [], "sourceUrl": "https://example.com"}))
+    monkeypatch.setattr(planner, "_generate_genai_description_with_timeout", lambda *args, **kwargs: None)
+    monkeypatch.setattr(planner.time, "sleep", lambda *args: None)
+    result = planner.main({"budget": "0", "servings": "1", "diets": [], "location": "Austin, TX",
+                           "meal_type": "lunch", "grocery": "no", "pantry": ["rice", "beans"]})
+    assert result["meals"][0]["price"] == 0.0
+    assert "No grocery stores needed" in result["stores"]

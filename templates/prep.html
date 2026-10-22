@@ -23,6 +23,7 @@
       action="{{ url_for('prep') }}"
       onsubmit="return showLoading(event)"
     >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <!-- Location with GPS -->
       <div class="input-group">
@@ -317,7 +318,8 @@
   function toggleMealLove(name, url, button) {
     fetch('/love_meal', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, url })
     })
     .then(res => res.json())
